@@ -1,8 +1,14 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Plus, Clock } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Clock, Filter, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Appointment {
   id: string;
@@ -13,6 +19,12 @@ interface Appointment {
   endTime: string;
   clinicColor: 1 | 2 | 3 | 4 | 5;
 }
+
+const mockClinics = [
+  { id: "1", name: "Dental Care Clinic", color: 1 },
+  { id: "2", name: "Elite Dental Center", color: 2 },
+  { id: "3", name: "Smile Clinic", color: 3 },
+];
 
 const mockAppointments: Record<string, Appointment[]> = {
   "2025-12-13": [
@@ -39,12 +51,16 @@ const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 export default function Schedule() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [view, setView] = useState<"daily" | "weekly">("daily");
+  const [selectedClinic, setSelectedClinic] = useState<string | null>(null);
 
   const formatDateKey = (date: Date) => {
     return date.toISOString().split("T")[0];
   };
 
-  const appointments = mockAppointments[formatDateKey(selectedDate)] || [];
+  const allAppointments = mockAppointments[formatDateKey(selectedDate)] || [];
+  const appointments = selectedClinic
+    ? allAppointments.filter((apt) => apt.clinicName === selectedClinic)
+    : allAppointments;
 
   const goToDate = (offset: number) => {
     const newDate = new Date(selectedDate);
@@ -78,13 +94,49 @@ export default function Schedule() {
           </Link>
         </div>
 
-        {/* View Toggle */}
-        <Tabs value={view} onValueChange={(v) => setView(v as "daily" | "weekly")} className="mb-4">
-          <TabsList className="bg-primary-foreground/20 w-full">
-            <TabsTrigger value="daily" className="flex-1 text-primary-foreground data-[state=active]:bg-primary-foreground data-[state=active]:text-primary">Daily</TabsTrigger>
-            <TabsTrigger value="weekly" className="flex-1 text-primary-foreground data-[state=active]:bg-primary-foreground data-[state=active]:text-primary">Weekly</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        {/* View Toggle and Filter */}
+        <div className="flex gap-2 mb-4">
+          <Tabs value={view} onValueChange={(v) => setView(v as "daily" | "weekly")} className="flex-1">
+            <TabsList className="bg-primary-foreground/20 w-full">
+              <TabsTrigger value="daily" className="flex-1 text-primary-foreground data-[state=active]:bg-primary-foreground data-[state=active]:text-primary">Daily</TabsTrigger>
+              <TabsTrigger value="weekly" className="flex-1 text-primary-foreground data-[state=active]:bg-primary-foreground data-[state=active]:text-primary">Weekly</TabsTrigger>
+            </TabsList>
+          </Tabs>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                size="sm" 
+                className={selectedClinic 
+                  ? "bg-primary-foreground text-primary hover:bg-primary-foreground/90" 
+                  : "bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground border-0"
+                }
+              >
+                <Filter className="w-4 h-4 mr-1" />
+                {selectedClinic ? "Filtered" : "Filter"}
+                {selectedClinic && (
+                  <X 
+                    className="w-3 h-3 ml-1" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedClinic(null);
+                    }} 
+                  />
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setSelectedClinic(null)}>
+                All Clinics
+              </DropdownMenuItem>
+              {mockClinics.map((clinic) => (
+                <DropdownMenuItem key={clinic.id} onClick={() => setSelectedClinic(clinic.name)}>
+                  <div className={`w-2 h-2 rounded-full mr-2 ${clinicBgClasses[clinic.color as keyof typeof clinicBgClasses]}`} />
+                  {clinic.name}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
 
         {/* Date Navigation */}
         <div className="flex items-center justify-between">

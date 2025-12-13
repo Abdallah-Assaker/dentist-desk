@@ -1,9 +1,15 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Search, Filter, Plus, AlertTriangle, ChevronRight, Package } from "lucide-react";
+import { Search, Filter, Plus, AlertTriangle, ChevronRight, Package, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Material {
   id: string;
@@ -14,6 +20,12 @@ interface Material {
   clinicName?: string;
   isGlobal: boolean;
 }
+
+const mockClinics = [
+  { id: "1", name: "Dental Care Clinic" },
+  { id: "2", name: "Elite Dental Center" },
+  { id: "3", name: "Smile Clinic" },
+];
 
 const mockMaterials: Material[] = [
   { id: "1", name: "Composite Resin A2", stock: 3, threshold: 10, avgCost: 450, clinicName: "Dental Care Clinic", isGlobal: false },
@@ -27,11 +39,17 @@ const mockMaterials: Material[] = [
 export default function Materials() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showLowStockOnly, setShowLowStockOnly] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
 
   const filteredMaterials = mockMaterials.filter((material) => {
     const matchesSearch = material.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesLowStock = showLowStockOnly ? material.stock <= material.threshold : true;
-    return matchesSearch && matchesLowStock;
+    const matchesLocation = selectedLocation
+      ? selectedLocation === "Global"
+        ? material.isGlobal
+        : material.clinicName === selectedLocation
+      : true;
+    return matchesSearch && matchesLowStock && matchesLocation;
   });
 
   const totalValue = mockMaterials.reduce((sum, m) => sum + m.stock * m.avgCost, 0);
@@ -79,9 +97,36 @@ export default function Materials() {
 
       {/* Filters */}
       <div className="px-4 py-3 flex gap-2 overflow-x-auto hide-scrollbar">
-        <Button variant="outline" size="sm" className="shrink-0">
-          <Filter className="w-3 h-3 mr-1" /> All Locations
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant={selectedLocation ? "default" : "outline"} size="sm" className="shrink-0">
+              <Filter className="w-3 h-3 mr-1" /> 
+              {selectedLocation || "All Locations"}
+              {selectedLocation && (
+                <X 
+                  className="w-3 h-3 ml-1" 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedLocation(null);
+                  }} 
+                />
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onClick={() => setSelectedLocation(null)}>
+              All Locations
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSelectedLocation("Global")}>
+              Global
+            </DropdownMenuItem>
+            {mockClinics.map((clinic) => (
+              <DropdownMenuItem key={clinic.id} onClick={() => setSelectedLocation(clinic.name)}>
+                {clinic.name}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
         <Button
           variant={showLowStockOnly ? "default" : "outline"}
           size="sm"
