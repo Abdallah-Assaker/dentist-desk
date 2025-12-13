@@ -2,30 +2,10 @@ import { Link } from "react-router-dom";
 import { Plus, UserPlus, CalendarPlus, Package } from "lucide-react";
 
 const actions = [
-  {
-    to: "/visits/new",
-    icon: Plus,
-    label: "Add Visit",
-    variant: "primary" as const,
-  },
-  {
-    to: "/patients/new",
-    icon: UserPlus,
-    label: "Add Patient",
-    variant: "secondary" as const,
-  },
-  {
-    to: "/appointments/new",
-    icon: CalendarPlus,
-    label: "Book Appointment",
-    variant: "secondary" as const,
-  },
-  {
-    to: "/materials/new",
-    icon: Package,
-    label: "Add Material",
-    variant: "secondary" as const,
-  },
+  { to: "/visits/new", icon: Plus, label: "Add Visit", variant: "primary" as const },
+  { to: "/patients/new", icon: UserPlus, label: "Add Patient", variant: "secondary" as const },
+  { to: "/appointments/new", icon: CalendarPlus, label: "Book Appointment", variant: "secondary" as const },
+  { to: "/materials/new", icon: Package, label: "Add Material", variant: "secondary" as const },
 ];
 
 export function QuickActions() {

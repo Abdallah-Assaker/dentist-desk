@@ -13,6 +13,19 @@ import More from "./pages/More";
 import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
 
+// Quick Action Pages
+import AddVisitEntry from "./pages/visits/AddVisitEntry";
+import SelectPatient from "./pages/visits/SelectPatient";
+import EmergencyPatient from "./pages/visits/EmergencyPatient";
+import VisitForm from "./pages/visits/VisitForm";
+import VisitDetails from "./pages/visits/VisitDetails";
+import AddPatient from "./pages/patients/AddPatient";
+import AddAppointment from "./pages/appointments/AddAppointment";
+import AppointmentDetails from "./pages/appointments/AppointmentDetails";
+import AddMaterial from "./pages/materials/AddMaterial";
+import AddMaterialPurchase from "./pages/materials/AddMaterialPurchase";
+import MaterialDetails from "./pages/materials/MaterialDetails";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -30,8 +43,21 @@ const App = () => (
             <Route path="/materials" element={<Materials />} />
             <Route path="/more" element={<More />} />
           </Route>
+          
+          {/* Quick Action Routes */}
+          <Route path="/visits/new" element={<AddVisitEntry />} />
+          <Route path="/visits/new/select-patient" element={<SelectPatient />} />
+          <Route path="/visits/new/emergency" element={<EmergencyPatient />} />
+          <Route path="/visits/new/form" element={<VisitForm />} />
+          <Route path="/visits/:id" element={<VisitDetails />} />
+          <Route path="/patients/new" element={<AddPatient />} />
+          <Route path="/appointments/new" element={<AddAppointment />} />
+          <Route path="/appointments/:id" element={<AppointmentDetails />} />
+          <Route path="/materials/new" element={<AddMaterial />} />
+          <Route path="/materials/:id" element={<MaterialDetails />} />
+          <Route path="/materials/:id/purchase" element={<AddMaterialPurchase />} />
+          
           <Route path="/notifications" element={<Notifications />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
