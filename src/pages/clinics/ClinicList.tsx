@@ -65,7 +65,7 @@ export default function ClinicList() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Search clinics..."
-            className="pl-10 bg-primary-foreground/20 border-0 text-primary-foreground placeholder:text-primary-foreground/60"
+            className="pl-10 bg-card border-0 shadow-sm"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />

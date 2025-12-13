@@ -1,10 +1,16 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Search, Filter, Plus, ChevronRight, Phone } from "lucide-react";
+import { Search, Filter, Plus, ChevronRight, Phone, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Patient {
   id: string;
@@ -16,6 +22,12 @@ interface Patient {
   balanceAmount?: number;
 }
 
+const mockClinics = [
+  { id: "1", name: "Dental Care Clinic" },
+  { id: "2", name: "Elite Dental Center" },
+  { id: "3", name: "Smile Clinic" },
+];
+
 const mockPatients: Patient[] = [
   { id: "1", name: "Sarah Ahmed", phone: "+20 100 123 4567", lastVisit: "Dec 10, 2025", clinicName: "Dental Care Clinic", hasBalance: false },
   { id: "2", name: "Mohamed Ali", phone: "+20 101 234 5678", lastVisit: "Dec 8, 2025", clinicName: "Elite Dental Center", hasBalance: true, balanceAmount: 1500 },
@@ -26,12 +38,15 @@ const mockPatients: Patient[] = [
 
 export default function Patients() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedClinic, setSelectedClinic] = useState<string | null>(null);
 
-  const filteredPatients = mockPatients.filter(
-    (patient) =>
+  const filteredPatients = mockPatients.filter((patient) => {
+    const matchesSearch =
       patient.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      patient.phone.includes(searchQuery)
-  );
+      patient.phone.includes(searchQuery);
+    const matchesClinic = selectedClinic ? patient.clinicName === selectedClinic : true;
+    return matchesSearch && matchesClinic;
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -60,9 +75,33 @@ export default function Patients() {
 
       {/* Filters */}
       <div className="px-4 py-3 flex gap-2 overflow-x-auto hide-scrollbar">
-        <Button variant="outline" size="sm" className="shrink-0">
-          <Filter className="w-3 h-3 mr-1" /> All Clinics
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant={selectedClinic ? "default" : "outline"} size="sm" className="shrink-0">
+              <Filter className="w-3 h-3 mr-1" /> 
+              {selectedClinic || "All Clinics"}
+              {selectedClinic && (
+                <X 
+                  className="w-3 h-3 ml-1" 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedClinic(null);
+                  }} 
+                />
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onClick={() => setSelectedClinic(null)}>
+              All Clinics
+            </DropdownMenuItem>
+            {mockClinics.map((clinic) => (
+              <DropdownMenuItem key={clinic.id} onClick={() => setSelectedClinic(clinic.name)}>
+                {clinic.name}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
         <Button variant="outline" size="sm" className="shrink-0">
           Procedure Type
         </Button>
