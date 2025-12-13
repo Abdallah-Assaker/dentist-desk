@@ -26,6 +26,12 @@ import AddMaterial from "./pages/materials/AddMaterial";
 import AddMaterialPurchase from "./pages/materials/AddMaterialPurchase";
 import MaterialDetails from "./pages/materials/MaterialDetails";
 
+// Clinic Pages
+import ClinicList from "./pages/clinics/ClinicList";
+import AddClinic from "./pages/clinics/AddClinic";
+import ClinicDetails from "./pages/clinics/ClinicDetails";
+import EditClinic from "./pages/clinics/EditClinic";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -56,6 +62,12 @@ const App = () => (
           <Route path="/materials/new" element={<AddMaterial />} />
           <Route path="/materials/:id" element={<MaterialDetails />} />
           <Route path="/materials/:id/purchase" element={<AddMaterialPurchase />} />
+          
+          {/* Clinic Routes */}
+          <Route path="/clinics" element={<ClinicList />} />
+          <Route path="/clinics/add" element={<AddClinic />} />
+          <Route path="/clinics/:id" element={<ClinicDetails />} />
+          <Route path="/clinics/:id/edit" element={<EditClinic />} />
           
           <Route path="/notifications" element={<Notifications />} />
           <Route path="*" element={<NotFound />} />
