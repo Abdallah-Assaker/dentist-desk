@@ -9,6 +9,7 @@ import {
   Link as LinkIcon,
   ChevronRight,
   LogOut,
+  Scissors,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
@@ -18,6 +19,7 @@ const menuSections = [
     title: "Management",
     items: [
       { to: "/clinics", icon: Building2, label: "Clinics", description: "Manage your clinics" },
+      { to: "/procedures", icon: Scissors, label: "Procedures", description: "Manage procedures & costs" },
       { to: "/labs", icon: FlaskConical, label: "Lab Orders", description: "Track lab workflows" },
       { to: "/suppliers", icon: Truck, label: "Suppliers", description: "Manage suppliers" },
       { to: "/financials", icon: PieChart, label: "Financials", description: "Earnings & reports" },

@@ -1,25 +1,33 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Camera, Plus, X } from "lucide-react";
+import { ArrowLeft, Camera, Plus, X, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const clinics = [
   { id: "1", name: "Dental Care Clinic" },
   { id: "2", name: "Elite Dental Center" },
 ];
 
-const procedures = [
-  { id: "1", name: "Root Canal Treatment", price: 1500 },
-  { id: "2", name: "Cleaning & Checkup", price: 300 },
-  { id: "3", name: "Crown Fitting", price: 2000 },
-  { id: "4", name: "Tooth Extraction", price: 500 },
-  { id: "5", name: "Filling", price: 400 },
-  { id: "6", name: "Teeth Whitening", price: 1000 },
+// These would come from the Procedures module
+const availableProcedures = [
+  { id: "1", name: "Root Canal Treatment", cost: 1500 },
+  { id: "2", name: "Cleaning & Checkup", cost: 300 },
+  { id: "3", name: "Crown Fitting", cost: 2000 },
+  { id: "4", name: "Tooth Extraction", cost: 500 },
+  { id: "5", name: "Filling", cost: 400 },
+  { id: "6", name: "Teeth Whitening", cost: 1000 },
 ];
 
 const materials = [
@@ -88,8 +96,8 @@ export default function VisitForm() {
   };
 
   const totalProcedures = formData.selectedProcedures.reduce((sum, id) => {
-    const proc = procedures.find((p) => p.id === id);
-    return sum + (proc?.price || 0);
+    const proc = availableProcedures.find((p) => p.id === id);
+    return sum + (proc?.cost || 0);
   }, 0);
 
   return (
@@ -158,7 +166,7 @@ export default function VisitForm() {
         <section className="space-y-4">
           <h2 className="font-semibold text-foreground">Procedures</h2>
           <div className="space-y-2">
-            {procedures.map((proc) => (
+            {availableProcedures.map((proc) => (
               <label
                 key={proc.id}
                 className="flex items-center gap-3 p-3 bg-card border border-border rounded-lg cursor-pointer hover:border-primary transition-colors"
@@ -168,7 +176,7 @@ export default function VisitForm() {
                   onCheckedChange={() => handleProcedureToggle(proc.id)}
                 />
                 <span className="flex-1 text-sm">{proc.name}</span>
-                <span className="text-sm font-medium text-primary">EGP {proc.price}</span>
+                <span className="text-sm font-medium text-primary">EGP {proc.cost}</span>
               </label>
             ))}
           </div>
