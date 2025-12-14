@@ -1,5 +1,6 @@
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, Clock, MapPin, Stethoscope, Package, FileText, CreditCard, FlaskConical, Image } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, MapPin, Stethoscope, Package, FileText, CreditCard, FlaskConical, Image, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 // Mock visit data
@@ -110,27 +111,39 @@ export default function VisitDetails() {
         </section>
 
         {/* Lab Orders */}
-        {mockVisit.labOrders.length > 0 && (
-          <section className="bg-card border border-border rounded-xl p-4 space-y-3">
+        <section className="bg-card border border-border rounded-xl p-4 space-y-3">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <FlaskConical className="h-5 w-5 text-primary" />
               <h2 className="font-semibold">Lab Orders</h2>
             </div>
+            <Link to={`/lab-orders/new?visitId=${id}&patientId=${mockVisit.patientId}&patientName=${encodeURIComponent(mockVisit.patientName)}&clinicName=${encodeURIComponent(mockVisit.clinicName)}`}>
+              <Button variant="outline" size="sm">
+                <Plus className="h-4 w-4 mr-1" />
+                Create Lab Order
+              </Button>
+            </Link>
+          </div>
+          {mockVisit.labOrders.length > 0 ? (
             <div className="space-y-2">
               {mockVisit.labOrders.map((lab) => (
-                <div key={lab.id} className="flex items-center justify-between py-2">
-                  <div>
-                    <p className="font-medium text-sm">{lab.type}</p>
-                    <p className="text-xs text-muted-foreground">{lab.lab}</p>
+                <Link key={lab.id} to={`/lab-orders/${lab.id}`} className="block">
+                  <div className="flex items-center justify-between py-2 hover:bg-muted/50 rounded-lg px-2 -mx-2 transition-colors">
+                    <div>
+                      <p className="font-medium text-sm">{lab.type}</p>
+                      <p className="text-xs text-muted-foreground">{lab.lab}</p>
+                    </div>
+                    <Badge variant="outline" className="bg-status-warning/10 text-status-warning border-status-warning/20">
+                      Pending Lab
+                    </Badge>
                   </div>
-                  <Badge variant="outline" className="bg-status-warning/10 text-status-warning border-status-warning/20">
-                    Pending Lab
-                  </Badge>
-                </div>
+                </Link>
               ))}
             </div>
-          </section>
-        )}
+          ) : (
+            <p className="text-sm text-muted-foreground">No lab orders for this visit</p>
+          )}
+        </section>
 
         {/* X-rays */}
         {mockVisit.xrays.length > 0 && (
