@@ -20,7 +20,8 @@ const menuSections = [
     items: [
       { to: "/clinics", icon: Building2, label: "Clinics", description: "Manage your clinics" },
       { to: "/procedures", icon: Scissors, label: "Procedures", description: "Manage procedures & costs" },
-      { to: "/labs", icon: FlaskConical, label: "Lab Orders", description: "Track lab workflows" },
+      { to: "/labs", icon: FlaskConical, label: "Labs", description: "Manage dental labs" },
+      { to: "/lab-services", icon: FlaskConical, label: "Lab Services", description: "Define lab service types" },
       { to: "/suppliers", icon: Truck, label: "Suppliers", description: "Manage suppliers" },
       { to: "/financials", icon: PieChart, label: "Financials", description: "Earnings & reports" },
     ],
