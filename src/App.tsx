@@ -58,6 +58,9 @@ import LabOrdersList from "./pages/lab-orders/LabOrdersList";
 import AddLabOrder from "./pages/lab-orders/AddLabOrder";
 import LabOrderDetails from "./pages/lab-orders/LabOrderDetails";
 
+// Financial Pages
+import FinancialsDashboard from "./pages/financials/FinancialsDashboard";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -126,6 +129,9 @@ const App = () => (
           <Route path="/lab-orders/new" element={<AddLabOrder />} />
           <Route path="/lab-orders/:id" element={<LabOrderDetails />} />
           <Route path="/lab-orders/:id/edit" element={<AddLabOrder />} />
+          
+          {/* Financial Routes */}
+          <Route path="/financials" element={<FinancialsDashboard />} />
           
           <Route path="/notifications" element={<Notifications />} />
           <Route path="*" element={<NotFound />} />
