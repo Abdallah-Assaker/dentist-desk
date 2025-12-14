@@ -54,9 +54,15 @@ export default function AddLabOrder() {
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const visitIdFromParams = searchParams.get("visitId");
+  const patientIdFromParams = searchParams.get("patientId");
+  const patientNameFromParams = searchParams.get("patientName");
+  const clinicNameFromParams = searchParams.get("clinicName");
+
+  // If visitId is provided, the visit is locked (came from Visit Details)
+  const isVisitLocked = !!visitIdFromParams;
 
   const [formData, setFormData] = useState({
-    patientId: "",
+    patientId: patientIdFromParams || "",
     visitId: visitIdFromParams || "",
     clinicId: "",
     labId: "",
@@ -102,8 +108,7 @@ export default function AddLabOrder() {
   };
 
   const isValid =
-    formData.patientId &&
-    formData.visitId &&
+    (isVisitLocked || (formData.patientId && formData.visitId)) &&
     formData.labId &&
     formData.selectedServices.length > 0 &&
     formData.costBearer &&
@@ -129,65 +134,96 @@ export default function AddLabOrder() {
         <div className="space-y-4">
           <h2 className="font-semibold text-foreground">Visit Association</h2>
 
-          <div className="space-y-2">
-            <Label>Patient *</Label>
-            <Select
-              value={formData.patientId}
-              onValueChange={(value) =>
-                setFormData({ ...formData, patientId: value, visitId: "" })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select patient" />
-              </SelectTrigger>
-              <SelectContent>
-                {mockPatients.map((patient) => (
-                  <SelectItem key={patient.id} value={patient.id}>
-                    {patient.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {isVisitLocked ? (
+            <>
+              {/* Locked visit info - display only */}
+              <div className="space-y-2">
+                <Label>Patient</Label>
+                <div className="p-3 bg-muted rounded-lg border border-border">
+                  <span className="text-foreground">{patientNameFromParams || "Selected Patient"}</span>
+                </div>
+              </div>
 
-          <div className="space-y-2">
-            <Label>Visit *</Label>
-            <Select
-              value={formData.visitId}
-              onValueChange={(value) => setFormData({ ...formData, visitId: value })}
-              disabled={!formData.patientId}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select visit" />
-              </SelectTrigger>
-              <SelectContent>
-                {filteredVisits.map((visit) => (
-                  <SelectItem key={visit.id} value={visit.id}>
-                    {visit.date} - {visit.procedure}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+              <div className="space-y-2">
+                <Label>Visit</Label>
+                <div className="p-3 bg-muted rounded-lg border border-border">
+                  <span className="text-foreground">Visit #{visitIdFromParams}</span>
+                </div>
+              </div>
 
-          <div className="space-y-2">
-            <Label>Clinic *</Label>
-            <Select
-              value={formData.clinicId}
-              onValueChange={(value) => setFormData({ ...formData, clinicId: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select clinic" />
-              </SelectTrigger>
-              <SelectContent>
-                {mockClinics.map((clinic) => (
-                  <SelectItem key={clinic.id} value={clinic.id}>
-                    {clinic.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+              {clinicNameFromParams && (
+                <div className="space-y-2">
+                  <Label>Clinic</Label>
+                  <div className="p-3 bg-muted rounded-lg border border-border">
+                    <span className="text-foreground">{clinicNameFromParams}</span>
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              {/* Editable selectors */}
+              <div className="space-y-2">
+                <Label>Patient *</Label>
+                <Select
+                  value={formData.patientId}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, patientId: value, visitId: "" })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select patient" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {mockPatients.map((patient) => (
+                      <SelectItem key={patient.id} value={patient.id}>
+                        {patient.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Visit *</Label>
+                <Select
+                  value={formData.visitId}
+                  onValueChange={(value) => setFormData({ ...formData, visitId: value })}
+                  disabled={!formData.patientId}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select visit" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filteredVisits.map((visit) => (
+                      <SelectItem key={visit.id} value={visit.id}>
+                        {visit.date} - {visit.procedure}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Clinic *</Label>
+                <Select
+                  value={formData.clinicId}
+                  onValueChange={(value) => setFormData({ ...formData, clinicId: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select clinic" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {mockClinics.map((clinic) => (
+                      <SelectItem key={clinic.id} value={clinic.id}>
+                        {clinic.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Lab Selection */}
