@@ -32,6 +32,10 @@ import AddClinic from "./pages/clinics/AddClinic";
 import ClinicDetails from "./pages/clinics/ClinicDetails";
 import EditClinic from "./pages/clinics/EditClinic";
 
+// Procedure Pages
+import ProceduresList from "./pages/procedures/ProceduresList";
+import AddProcedure from "./pages/procedures/AddProcedure";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -68,6 +72,11 @@ const App = () => (
           <Route path="/clinics/add" element={<AddClinic />} />
           <Route path="/clinics/:id" element={<ClinicDetails />} />
           <Route path="/clinics/:id/edit" element={<EditClinic />} />
+          
+          {/* Procedure Routes */}
+          <Route path="/procedures" element={<ProceduresList />} />
+          <Route path="/procedures/new" element={<AddProcedure />} />
+          <Route path="/procedures/:id/edit" element={<AddProcedure />} />
           
           <Route path="/notifications" element={<Notifications />} />
           <Route path="*" element={<NotFound />} />
