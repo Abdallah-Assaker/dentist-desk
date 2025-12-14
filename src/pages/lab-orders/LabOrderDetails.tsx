@@ -8,8 +8,6 @@ import {
   Calendar,
   DollarSign,
   Paperclip,
-  Image,
-  FileText,
   Trash2,
   Edit,
 } from "lucide-react";
@@ -35,8 +33,14 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import FileUpload, { UploadedFile } from "@/components/FileUpload";
 
 type LabOrderStatus = "pending_send" | "pending_lab" | "pending_delivery" | "delivered";
+
+const initialAttachments: UploadedFile[] = [
+  { id: "1", name: "shade_photo.jpg", type: "image", url: "/placeholder.svg" },
+  { id: "2", name: "impression_notes.pdf", type: "document", url: "#" },
+];
 
 const mockLabOrder = {
   id: "1",
@@ -57,10 +61,6 @@ const mockLabOrder = {
   costBearer: "dentist_clinic",
   dentistPercentage: 60,
   notes: "Shade A2, please ensure proper margins. Patient prefers natural look.",
-  attachments: [
-    { id: "1", name: "shade_photo.jpg", type: "image" },
-    { id: "2", name: "impression_notes.pdf", type: "document" },
-  ],
 };
 
 const statusConfig: Record<LabOrderStatus, { label: string; className: string }> = {
@@ -94,6 +94,7 @@ export default function LabOrderDetails() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [status, setStatus] = useState<LabOrderStatus>(mockLabOrder.status);
+  const [attachments, setAttachments] = useState<UploadedFile[]>(initialAttachments);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -283,31 +284,11 @@ export default function LabOrderDetails() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {mockLabOrder.attachments.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No attachments</p>
-            ) : (
-              <div className="space-y-2">
-                {mockLabOrder.attachments.map((attachment) => (
-                  <div
-                    key={attachment.id}
-                    className="flex items-center gap-3 p-2 bg-muted rounded-lg"
-                  >
-                    {attachment.type === "image" ? (
-                      <Image className="h-4 w-4 text-muted-foreground" />
-                    ) : (
-                      <FileText className="h-4 w-4 text-muted-foreground" />
-                    )}
-                    <span className="text-sm">{attachment.name}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-            {!isDelivered && (
-              <Button variant="outline" size="sm" className="mt-3">
-                <Paperclip className="h-4 w-4 mr-2" />
-                Add Attachment
-              </Button>
-            )}
+            <FileUpload
+              files={attachments}
+              onFilesChange={setAttachments}
+              disabled={isDelivered}
+            />
           </CardContent>
         </Card>
 
