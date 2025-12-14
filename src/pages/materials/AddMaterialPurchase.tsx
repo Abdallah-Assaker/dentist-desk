@@ -18,13 +18,24 @@ const clinics = [
   { id: "2", name: "Elite Dental Center" },
 ];
 
+const materials = [
+  { id: "1", name: "Composite Resin A2" },
+  { id: "2", name: "Anesthetic Carpules" },
+  { id: "3", name: "Dental Cement" },
+  { id: "4", name: "Impression Material" },
+  { id: "5", name: "Bonding Agent" },
+  { id: "6", name: "Temporary Filling" },
+];
+
 export default function AddMaterialPurchase() {
   const navigate = useNavigate();
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const isNewMaterial = searchParams.get("new") === "true";
 
+  // If we have an id from params, use it as the pre-selected material
   const [formData, setFormData] = useState({
+    materialId: id || "",
     supplierId: "",
     unitCost: "",
     quantity: "",
@@ -35,13 +46,21 @@ export default function AddMaterialPurchase() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // In real app, save purchase
-    navigate(`/materials/${id}`);
+    if (formData.materialId) {
+      navigate(`/materials/${formData.materialId}`);
+    } else {
+      navigate("/materials");
+    }
   };
 
   const isValid =
+    formData.materialId !== "" &&
     formData.supplierId !== "" &&
     formData.quantity !== "" &&
     (formData.assignTo === "global" || formData.clinicId !== "");
+
+  // Get selected material name for display
+  const selectedMaterial = materials.find(m => m.id === formData.materialId);
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -49,7 +68,7 @@ export default function AddMaterialPurchase() {
       <header className="bg-primary text-primary-foreground px-4 py-4 sticky top-0 z-10">
         <div className="flex items-center gap-3">
           <Link
-            to={isNewMaterial ? "/materials/new" : `/materials/${id}`}
+            to={id ? `/materials/${id}` : "/materials"}
             className="p-2 -ml-2 hover:bg-primary-dark rounded-lg transition-colors"
           >
             <ArrowLeft className="h-5 w-5" />
@@ -69,6 +88,32 @@ export default function AddMaterialPurchase() {
         )}
 
         <div className="space-y-4">
+          {/* Material Selection - show dropdown if no id provided */}
+          <div className="space-y-2">
+            <Label>Material *</Label>
+            {id ? (
+              <div className="p-3 bg-muted rounded-lg">
+                <span className="font-medium">{selectedMaterial?.name || `Material #${id}`}</span>
+              </div>
+            ) : (
+              <Select
+                value={formData.materialId}
+                onValueChange={(value) => setFormData({ ...formData, materialId: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select material" />
+                </SelectTrigger>
+                <SelectContent>
+                  {materials.map((material) => (
+                    <SelectItem key={material.id} value={material.id}>
+                      {material.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+
           <div className="space-y-2">
             <Label>Supplier *</Label>
             <Select
