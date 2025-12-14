@@ -53,6 +53,11 @@ import AdjustLabBalance from "./pages/labs/AdjustLabBalance";
 import LabServicesList from "./pages/lab-services/LabServicesList";
 import AddLabService from "./pages/lab-services/AddLabService";
 
+// Lab Orders Pages
+import LabOrdersList from "./pages/lab-orders/LabOrdersList";
+import AddLabOrder from "./pages/lab-orders/AddLabOrder";
+import LabOrderDetails from "./pages/lab-orders/LabOrderDetails";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -115,6 +120,12 @@ const App = () => (
           <Route path="/lab-services" element={<LabServicesList />} />
           <Route path="/lab-services/new" element={<AddLabService />} />
           <Route path="/lab-services/:id/edit" element={<AddLabService />} />
+          
+          {/* Lab Orders Routes */}
+          <Route path="/lab-orders" element={<LabOrdersList />} />
+          <Route path="/lab-orders/new" element={<AddLabOrder />} />
+          <Route path="/lab-orders/:id" element={<LabOrderDetails />} />
+          <Route path="/lab-orders/:id/edit" element={<AddLabOrder />} />
           
           <Route path="/notifications" element={<Notifications />} />
           <Route path="*" element={<NotFound />} />
