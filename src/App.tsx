@@ -61,6 +61,9 @@ import LabOrderDetails from "./pages/lab-orders/LabOrderDetails";
 // Financial Pages
 import FinancialsDashboard from "./pages/financials/FinancialsDashboard";
 
+// Profile Page
+import Profile from "./pages/Profile";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -132,6 +135,9 @@ const App = () => (
           
           {/* Financial Routes */}
           <Route path="/financials" element={<FinancialsDashboard />} />
+          
+          {/* Profile Route */}
+          <Route path="/profile" element={<Profile />} />
           
           <Route path="/notifications" element={<Notifications />} />
           <Route path="*" element={<NotFound />} />
