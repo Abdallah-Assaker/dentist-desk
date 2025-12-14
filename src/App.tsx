@@ -36,6 +36,13 @@ import EditClinic from "./pages/clinics/EditClinic";
 import ProceduresList from "./pages/procedures/ProceduresList";
 import AddProcedure from "./pages/procedures/AddProcedure";
 
+// Supplier Pages
+import SuppliersList from "./pages/suppliers/SuppliersList";
+import AddSupplier from "./pages/suppliers/AddSupplier";
+import SupplierDetails from "./pages/suppliers/SupplierDetails";
+import AdjustBalance from "./pages/suppliers/AdjustBalance";
+import AddPurchase from "./pages/suppliers/AddPurchase";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -77,6 +84,14 @@ const App = () => (
           <Route path="/procedures" element={<ProceduresList />} />
           <Route path="/procedures/new" element={<AddProcedure />} />
           <Route path="/procedures/:id/edit" element={<AddProcedure />} />
+          
+          {/* Supplier Routes */}
+          <Route path="/suppliers" element={<SuppliersList />} />
+          <Route path="/suppliers/new" element={<AddSupplier />} />
+          <Route path="/suppliers/:id" element={<SupplierDetails />} />
+          <Route path="/suppliers/:id/edit" element={<AddSupplier />} />
+          <Route path="/suppliers/:id/adjust-balance" element={<AdjustBalance />} />
+          <Route path="/suppliers/:id/purchase" element={<AddPurchase />} />
           
           <Route path="/notifications" element={<Notifications />} />
           <Route path="*" element={<NotFound />} />
