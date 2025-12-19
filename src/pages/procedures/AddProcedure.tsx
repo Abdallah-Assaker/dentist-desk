@@ -1,33 +1,35 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/hooks/use-toast";
-
-const mockProcedures: Record<string, { name: string; cost: number }> = {
-  "1": { name: "Root Canal Treatment", cost: 1500 },
-  "2": { name: "Cleaning & Checkup", cost: 300 },
-  "3": { name: "Crown Fitting", cost: 2000 },
-  "4": { name: "Tooth Extraction", cost: 500 },
-  "5": { name: "Filling", cost: 400 },
-  "6": { name: "Teeth Whitening", cost: 1000 },
-};
+import { useProcedure, useCreateProcedure, useUpdateProcedure } from "@/hooks/useProcedures";
 
 export default function AddProcedure() {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEditing = !!id;
 
-  const existingProcedure = id ? mockProcedures[id] : null;
+  const { data: existingProcedure, isLoading: isLoadingProcedure } = useProcedure(id);
+  const createProcedure = useCreateProcedure();
+  const updateProcedure = useUpdateProcedure();
 
   const [formData, setFormData] = useState({
-    name: existingProcedure?.name || "",
-    cost: existingProcedure?.cost?.toString() || "",
+    name: "",
+    cost: "",
   });
 
   const [errors, setErrors] = useState<{ name?: string; cost?: string }>({});
+
+  useEffect(() => {
+    if (existingProcedure) {
+      setFormData({
+        name: existingProcedure.name,
+        cost: existingProcedure.cost.toString(),
+      });
+    }
+  }, [existingProcedure]);
 
   const validate = () => {
     const newErrors: { name?: string; cost?: string } = {};
@@ -51,13 +53,48 @@ export default function AddProcedure() {
     
     if (!validate()) return;
 
-    toast({
-      title: isEditing ? "Procedure updated" : "Procedure added",
-      description: `${formData.name} has been ${isEditing ? "updated" : "added"} successfully.`,
-    });
-    
-    navigate("/procedures");
+    const procedureData = {
+      name: formData.name.trim(),
+      cost: Number(formData.cost),
+    };
+
+    if (isEditing && id) {
+      updateProcedure.mutate(
+        { id, ...procedureData },
+        {
+          onSuccess: () => {
+            navigate("/procedures");
+          },
+        }
+      );
+    } else {
+      createProcedure.mutate(procedureData, {
+        onSuccess: () => {
+          navigate("/procedures");
+        },
+      });
+    }
   };
+
+  const isPending = createProcedure.isPending || updateProcedure.isPending;
+
+  if (isEditing && isLoadingProcedure) {
+    return (
+      <div className="min-h-screen bg-background pb-24">
+        <header className="bg-primary text-primary-foreground px-4 py-4 sticky top-0 z-10">
+          <div className="flex items-center gap-3">
+            <Link to="/procedures" className="p-2 -ml-2 hover:bg-primary-dark rounded-lg transition-colors">
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+            <h1 className="text-lg font-semibold">Edit Procedure</h1>
+          </div>
+        </header>
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -115,11 +152,18 @@ export default function AddProcedure() {
           variant="outline"
           className="flex-1"
           onClick={() => navigate("/procedures")}
+          disabled={isPending}
         >
           Cancel
         </Button>
-        <Button onClick={handleSubmit} className="flex-1">
-          {isEditing ? "Update" : "Save"}
+        <Button onClick={handleSubmit} className="flex-1" disabled={isPending}>
+          {isPending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : isEditing ? (
+            "Update"
+          ) : (
+            "Save"
+          )}
         </Button>
       </div>
     </div>

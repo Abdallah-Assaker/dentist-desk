@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Plus, Pencil, Trash2, Scissors } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, Scissors, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -20,32 +20,62 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { toast } from "@/hooks/use-toast";
-
-const mockProcedures = [
-  { id: "1", name: "Root Canal Treatment", cost: 1500 },
-  { id: "2", name: "Cleaning & Checkup", cost: 300 },
-  { id: "3", name: "Crown Fitting", cost: 2000 },
-  { id: "4", name: "Tooth Extraction", cost: 500 },
-  { id: "5", name: "Filling", cost: 400 },
-  { id: "6", name: "Teeth Whitening", cost: 1000 },
-];
+import { useProcedures, useDeleteProcedure } from "@/hooks/useProcedures";
 
 export default function ProceduresList() {
   const navigate = useNavigate();
-  const [procedures, setProcedures] = useState(mockProcedures);
+  const { data: procedures = [], isLoading, error } = useProcedures();
+  const deleteProcedure = useDeleteProcedure();
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const handleDelete = () => {
     if (deleteId) {
-      setProcedures((prev) => prev.filter((p) => p.id !== deleteId));
-      toast({
-        title: "Procedure deleted",
-        description: "The procedure has been removed successfully.",
+      deleteProcedure.mutate(deleteId, {
+        onSuccess: () => {
+          setDeleteId(null);
+        },
       });
-      setDeleteId(null);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background pb-24">
+        <header className="bg-primary text-primary-foreground px-4 py-4 sticky top-0 z-10">
+          <div className="flex items-center gap-3">
+            <Link to="/more" className="p-2 -ml-2 hover:bg-primary-dark rounded-lg transition-colors">
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+            <h1 className="text-lg font-semibold">Procedures</h1>
+          </div>
+        </header>
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background pb-24">
+        <header className="bg-primary text-primary-foreground px-4 py-4 sticky top-0 z-10">
+          <div className="flex items-center gap-3">
+            <Link to="/more" className="p-2 -ml-2 hover:bg-primary-dark rounded-lg transition-colors">
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+            <h1 className="text-lg font-semibold">Procedures</h1>
+          </div>
+        </header>
+        <div className="flex flex-col items-center justify-center py-16 text-center px-4">
+          <p className="text-destructive">Failed to load procedures. Please try again.</p>
+          <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -145,8 +175,13 @@ export default function ProceduresList() {
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteProcedure.isPending}
             >
-              Confirm Delete
+              {deleteProcedure.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "Confirm Delete"
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
