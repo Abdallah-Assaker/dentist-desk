@@ -103,9 +103,6 @@ export default function ProceduresList() {
               className="bg-card rounded-xl shadow-card overflow-hidden"
             >
               <div className="flex items-center gap-3 p-4">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Scissors className="w-5 h-5 text-primary" />
-                </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
                     <div>
