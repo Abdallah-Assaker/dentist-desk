@@ -3,46 +3,19 @@ import { ArrowLeft, Plus, MapPin, Percent, DollarSign, ChevronRight, Search } fr
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
-
-const mockClinics = [
-  {
-    id: "1",
-    name: "Cairo Dental Center",
-    location: "Nasr City, Cairo",
-    revenueModel: "percentage" as const,
-    revenueValue: 30,
-    totalEarnings: 15420,
-    color: "clinic-1",
-  },
-  {
-    id: "2",
-    name: "Giza Medical Complex",
-    location: "Dokki, Giza",
-    revenueModel: "fixed" as const,
-    revenueValue: 500,
-    totalEarnings: 8750,
-    color: "clinic-2",
-  },
-  {
-    id: "3",
-    name: "Alexandria Smile Clinic",
-    location: "Smouha, Alexandria",
-    revenueModel: "percentage" as const,
-    revenueValue: 25,
-    totalEarnings: 12300,
-    color: "clinic-3",
-  },
-];
+import { useClinics, getClinicColorClasses } from "@/hooks/useClinics";
 
 export default function ClinicList() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  const { data: clinics, isLoading, error } = useClinics();
 
-  const filteredClinics = mockClinics.filter((clinic) =>
+  const filteredClinics = clinics?.filter((clinic) =>
     clinic.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     clinic.location.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  ) || [];
 
   return (
     <div className="min-h-screen bg-background">
@@ -74,59 +47,79 @@ export default function ClinicList() {
 
       {/* Clinic List */}
       <div className="px-4 py-4 space-y-3 -mt-4">
-        {filteredClinics.map((clinic) => (
-          <Link
-            key={clinic.id}
-            to={`/clinics/${clinic.id}`}
-            className="block bg-card rounded-xl shadow-card overflow-hidden"
-          >
-            <div className="flex items-start gap-3 p-4">
-              <div
-                className={`w-12 h-12 rounded-xl flex items-center justify-center bg-${clinic.color}/20`}
-                style={{ backgroundColor: `hsl(var(--${clinic.color}) / 0.2)` }}
-              >
-                <span
-                  className="text-lg font-bold"
-                  style={{ color: `hsl(var(--${clinic.color}))` }}
-                >
-                  {clinic.name.charAt(0)}
-                </span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <h3 className="font-semibold text-foreground">{clinic.name}</h3>
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground mt-0.5">
-                      <MapPin className="w-3.5 h-3.5" />
-                      <span>{clinic.location}</span>
-                    </div>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                </div>
-                <div className="flex items-center gap-3 mt-3">
-                  <Badge variant="secondary" className="gap-1">
-                    {clinic.revenueModel === "percentage" ? (
-                      <>
-                        <Percent className="w-3 h-3" />
-                        {clinic.revenueValue}%
-                      </>
-                    ) : (
-                      <>
-                        <DollarSign className="w-3 h-3" />
-                        {clinic.revenueValue} EGP/visit
-                      </>
-                    )}
-                  </Badge>
-                  <span className="text-sm text-muted-foreground">
-                    Earnings: <span className="font-semibold text-primary">{clinic.totalEarnings.toLocaleString()} EGP</span>
-                  </span>
+        {isLoading ? (
+          // Loading skeletons
+          Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="bg-card rounded-xl shadow-card p-4">
+              <div className="flex items-start gap-3">
+                <Skeleton className="w-12 h-12 rounded-xl" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-5 w-32" />
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-6 w-20" />
                 </div>
               </div>
             </div>
-          </Link>
-        ))}
-
-        {filteredClinics.length === 0 && (
+          ))
+        ) : error ? (
+          <div className="text-center py-12 text-destructive">
+            <p>Failed to load clinics</p>
+          </div>
+        ) : filteredClinics.length > 0 ? (
+          filteredClinics.map((clinic) => {
+            const colorClasses = getClinicColorClasses(clinic.color);
+            return (
+              <Link
+                key={clinic.id}
+                to={`/clinics/${clinic.id}`}
+                className="block bg-card rounded-xl shadow-card overflow-hidden"
+              >
+                <div className="flex items-start gap-3 p-4">
+                  <div
+                    className={`w-12 h-12 rounded-xl flex items-center justify-center ${colorClasses.bg}/20`}
+                    style={{ backgroundColor: `hsl(var(--${clinic.color}) / 0.2)` }}
+                  >
+                    <span
+                      className={`text-lg font-bold ${colorClasses.text}`}
+                    >
+                      {clinic.name.charAt(0)}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <h3 className="font-semibold text-foreground">{clinic.name}</h3>
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground mt-0.5">
+                          <MapPin className="w-3.5 h-3.5" />
+                          <span>{clinic.location}</span>
+                        </div>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                    </div>
+                    <div className="flex items-center gap-3 mt-3">
+                      <Badge variant="secondary" className="gap-1">
+                        {clinic.revenue_model === "percentage" ? (
+                          <>
+                            <Percent className="w-3 h-3" />
+                            {clinic.revenue_value}%
+                          </>
+                        ) : (
+                          <>
+                            <DollarSign className="w-3 h-3" />
+                            {clinic.revenue_value} EGP/visit
+                          </>
+                        )}
+                      </Badge>
+                      <span className="text-sm text-muted-foreground">
+                        Earnings: <span className="font-semibold text-primary">{clinic.total_earnings.toLocaleString()} EGP</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            );
+          })
+        ) : (
           <div className="text-center py-12 text-muted-foreground">
             <p>No clinics found</p>
           </div>

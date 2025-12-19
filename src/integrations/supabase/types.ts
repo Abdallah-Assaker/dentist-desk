@@ -14,7 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      clinics: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          location: string
+          name: string
+          revenue_model: string
+          revenue_value: number
+          total_earnings: number
+          updated_at: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id?: string
+          location: string
+          name: string
+          revenue_model?: string
+          revenue_value?: number
+          total_earnings?: number
+          updated_at?: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          location?: string
+          name?: string
+          revenue_model?: string
+          revenue_value?: number
+          total_earnings?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
