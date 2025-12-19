@@ -10,12 +10,7 @@ import { useClinics, getClinicColorClasses } from "@/hooks/useClinics";
 export default function ClinicList() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
-  const { data: clinics, isLoading, error } = useClinics();
-
-  const filteredClinics = clinics?.filter((clinic) =>
-    clinic.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    clinic.location.toLowerCase().includes(searchQuery.toLowerCase())
-  ) || [];
+  const { data: clinics, isLoading, error } = useClinics(searchQuery);
 
   return (
     <div className="min-h-screen bg-background">
@@ -65,8 +60,8 @@ export default function ClinicList() {
           <div className="text-center py-12 text-destructive">
             <p>Failed to load clinics</p>
           </div>
-        ) : filteredClinics.length > 0 ? (
-          filteredClinics.map((clinic) => {
+        ) : (clinics && clinics.length > 0) ? (
+          clinics.map((clinic) => {
             const colorClasses = getClinicColorClasses(clinic.color);
             return (
               <Link

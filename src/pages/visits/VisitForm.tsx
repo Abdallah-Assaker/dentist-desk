@@ -14,11 +14,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-
-const clinics = [
-  { id: "1", name: "Dental Care Clinic" },
-  { id: "2", name: "Elite Dental Center" },
-];
+import { useClinics } from "@/hooks/useClinics";
 
 // These would come from the Procedures module
 const availableProcedures = [
@@ -42,6 +38,7 @@ export default function VisitForm() {
   const [searchParams] = useSearchParams();
   const patientId = searchParams.get("patientId");
   const isEmergency = searchParams.get("emergency") === "true";
+  const { data: clinics = [], isLoading } = useClinics();
 
   const [formData, setFormData] = useState({
     clinicId: "",
@@ -133,11 +130,21 @@ export default function VisitForm() {
                 <SelectValue placeholder="Select clinic" />
               </SelectTrigger>
               <SelectContent>
+                {isLoading && (
+                  <SelectItem value="loading" disabled>
+                    Loading...
+                  </SelectItem>
+                )}
                 {clinics.map((clinic) => (
                   <SelectItem key={clinic.id} value={clinic.id}>
                     {clinic.name}
                   </SelectItem>
                 ))}
+                {!isLoading && clinics.length === 0 && (
+                  <SelectItem value="none" disabled>
+                    No clinics found
+                  </SelectItem>
+                )}
               </SelectContent>
             </Select>
           </div>

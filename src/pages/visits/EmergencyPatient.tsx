@@ -5,14 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-const clinics = [
-  { id: "1", name: "Dental Care Clinic" },
-  { id: "2", name: "Elite Dental Center" },
-];
+import { useClinics } from "@/hooks/useClinics";
 
 export default function EmergencyPatient() {
   const navigate = useNavigate();
+  const { data: clinics = [], isLoading } = useClinics();
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -78,11 +75,21 @@ export default function EmergencyPatient() {
                 <SelectValue placeholder="Select clinic" />
               </SelectTrigger>
               <SelectContent>
+                {isLoading && (
+                  <SelectItem value="loading" disabled>
+                    Loading...
+                  </SelectItem>
+                )}
                 {clinics.map((clinic) => (
                   <SelectItem key={clinic.id} value={clinic.id}>
                     {clinic.name}
                   </SelectItem>
                 ))}
+                {!isLoading && clinics.length === 0 && (
+                  <SelectItem value="none" disabled>
+                    No clinics found
+                  </SelectItem>
+                )}
               </SelectContent>
             </Select>
           </div>

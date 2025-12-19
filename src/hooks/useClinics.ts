@@ -22,10 +22,22 @@ export interface ClinicFormData {
   color?: string;
 }
 
-export function useClinics() {
+export function useClinics(search?: string) {
   return useQuery({
-    queryKey: ["clinics"],
+    queryKey: ["clinics", search || ""],
     queryFn: async () => {
+      const term = search?.trim();
+      if (term) {
+        const { data, error } = await supabase
+          .from("clinics")
+          .select("*")
+          .or(`name.ilike.%${term}%,location.ilike.%${term}%`)
+          .order("name");
+
+        if (error) throw error;
+        return data as Clinic[];
+      }
+
       const { data, error } = await supabase
         .from("clinics")
         .select("*")

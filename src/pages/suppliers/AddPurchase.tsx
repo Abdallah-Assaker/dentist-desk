@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { useClinics } from "@/hooks/useClinics";
 
 const mockMaterials = [
   { id: "1", name: "Composite Resin A2" },
@@ -17,15 +18,13 @@ const mockMaterials = [
   { id: "5", name: "Glass Ionomer" },
 ];
 
-const clinics = [
-  { id: "1", name: "Dental Care Clinic" },
-  { id: "2", name: "Elite Dental Center" },
-];
+// Clinics are fetched from Supabase
 
 export default function AddPurchase() {
   const navigate = useNavigate();
   const { id } = useParams();
   const { toast } = useToast();
+  const { data: clinics = [], isLoading } = useClinics();
 
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split("T")[0],
@@ -216,11 +215,21 @@ export default function AddPurchase() {
                 <SelectValue placeholder="Select clinic" />
               </SelectTrigger>
               <SelectContent>
+                {isLoading && (
+                  <SelectItem value="loading" disabled>
+                    Loading...
+                  </SelectItem>
+                )}
                 {clinics.map((clinic) => (
                   <SelectItem key={clinic.id} value={clinic.id}>
                     {clinic.name}
                   </SelectItem>
                 ))}
+                {!isLoading && clinics.length === 0 && (
+                  <SelectItem value="none" disabled>
+                    No clinics found
+                  </SelectItem>
+                )}
               </SelectContent>
             </Select>
           </div>

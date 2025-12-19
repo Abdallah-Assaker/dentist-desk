@@ -11,6 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useClinics } from "@/hooks/useClinics";
 
 interface Patient {
   id: string;
@@ -22,11 +23,7 @@ interface Patient {
   balanceAmount?: number;
 }
 
-const mockClinics = [
-  { id: "1", name: "Dental Care Clinic" },
-  { id: "2", name: "Elite Dental Center" },
-  { id: "3", name: "Smile Clinic" },
-];
+// Clinics are fetched from Supabase
 
 const mockPatients: Patient[] = [
   { id: "1", name: "Sarah Ahmed", phone: "+20 100 123 4567", lastVisit: "Dec 10, 2025", clinicName: "Dental Care Clinic", hasBalance: false },
@@ -39,6 +36,7 @@ const mockPatients: Patient[] = [
 export default function Patients() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedClinic, setSelectedClinic] = useState<string | null>(null);
+  const { data: clinics = [] } = useClinics();
 
   const filteredPatients = mockPatients.filter((patient) => {
     const matchesSearch =
@@ -95,7 +93,7 @@ export default function Patients() {
             <DropdownMenuItem onClick={() => setSelectedClinic(null)}>
               All Clinics
             </DropdownMenuItem>
-            {mockClinics.map((clinic) => (
+            {clinics.map((clinic) => (
               <DropdownMenuItem key={clinic.id} onClick={() => setSelectedClinic(clinic.name)}>
                 {clinic.name}
               </DropdownMenuItem>
