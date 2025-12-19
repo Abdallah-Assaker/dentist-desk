@@ -94,49 +94,13 @@ export default function Schedule() {
           </Link>
         </div>
 
-        {/* View Toggle and Filter */}
-        <div className="flex gap-2 mb-4">
-          <Tabs value={view} onValueChange={(v) => setView(v as "daily" | "weekly")} className="flex-1">
-            <TabsList className="bg-primary-foreground/20 w-full">
-              <TabsTrigger value="daily" className="flex-1 text-primary-foreground data-[state=active]:bg-primary-foreground data-[state=active]:text-primary">Daily</TabsTrigger>
-              <TabsTrigger value="weekly" className="flex-1 text-primary-foreground data-[state=active]:bg-primary-foreground data-[state=active]:text-primary">Weekly</TabsTrigger>
-            </TabsList>
-          </Tabs>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                size="sm" 
-                className={selectedClinic 
-                  ? "bg-primary-foreground text-primary hover:bg-primary-foreground/90" 
-                  : "bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground border-0"
-                }
-              >
-                <Filter className="w-4 h-4 mr-1" />
-                {selectedClinic ? "Filtered" : "Filter"}
-                {selectedClinic && (
-                  <X 
-                    className="w-3 h-3 ml-1" 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedClinic(null);
-                    }} 
-                  />
-                )}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setSelectedClinic(null)}>
-                All Clinics
-              </DropdownMenuItem>
-              {mockClinics.map((clinic) => (
-                <DropdownMenuItem key={clinic.id} onClick={() => setSelectedClinic(clinic.name)}>
-                  <div className={`w-2 h-2 rounded-full mr-2 ${clinicBgClasses[clinic.color as keyof typeof clinicBgClasses]}`} />
-                  {clinic.name}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+        {/* View Toggle */}
+        <Tabs value={view} onValueChange={(v) => setView(v as "daily" | "weekly")} className="mb-4">
+          <TabsList className="bg-primary-foreground/20 w-full">
+            <TabsTrigger value="daily" className="flex-1 text-primary-foreground data-[state=active]:bg-primary-foreground data-[state=active]:text-primary">Daily</TabsTrigger>
+            <TabsTrigger value="weekly" className="flex-1 text-primary-foreground data-[state=active]:bg-primary-foreground data-[state=active]:text-primary">Weekly</TabsTrigger>
+          </TabsList>
+        </Tabs>
 
         {/* Date Navigation */}
         <div className="flex items-center justify-between">
@@ -153,7 +117,7 @@ export default function Schedule() {
       </header>
 
       {/* Week Days Selector */}
-      <div className="px-4 py-3 flex gap-2 overflow-x-auto hide-scrollbar -mt-3">
+      <div className="px-4 py-3 flex gap-2 overflow-x-auto hide-scrollbar">
         {weekDays.map((day) => {
           const isSelected = formatDateKey(day) === formatDateKey(selectedDate);
           const isToday = formatDateKey(day) === formatDateKey(new Date());
@@ -174,6 +138,38 @@ export default function Schedule() {
             </button>
           );
         })}
+      </div>
+
+      {/* Filters */}
+      <div className="px-4 py-3 flex gap-2 overflow-x-auto hide-scrollbar">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant={selectedClinic ? "default" : "outline"} size="sm" className="shrink-0">
+              <Filter className="w-3 h-3 mr-1" />
+              {selectedClinic || "Clinic"}
+              {selectedClinic && (
+                <X
+                  className="w-3 h-3 ml-1"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedClinic(null);
+                  }}
+                />
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onClick={() => setSelectedClinic(null)}>
+              All Clinics
+            </DropdownMenuItem>
+            {mockClinics.map((clinic) => (
+              <DropdownMenuItem key={clinic.id} onClick={() => setSelectedClinic(clinic.name)}>
+                <div className={`w-2 h-2 rounded-full mr-2 ${clinicBgClasses[clinic.color as keyof typeof clinicBgClasses]}`} />
+                {clinic.name}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Appointments */}
