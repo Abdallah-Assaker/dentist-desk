@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Plus, Edit, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Edit, Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -20,33 +20,49 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useToast } from "@/hooks/use-toast";
-
-const mockLabServices = [
-  { id: "1", name: "Zirconia Crown", defaultCost: 1500, notes: "High-quality ceramic crown" },
-  { id: "2", name: "Metal Crown", defaultCost: 800, notes: "" },
-  { id: "3", name: "Porcelain Veneer", defaultCost: 2000, notes: "Per unit" },
-  { id: "4", name: "Full Denture", defaultCost: 5000, notes: "Upper or lower" },
-  { id: "5", name: "Partial Denture", defaultCost: 3500, notes: "" },
-  { id: "6", name: "Implant Crown", defaultCost: 2500, notes: "Includes abutment" },
-];
+import { useLabServices, useDeleteLabService } from "@/hooks/useLabServices";
 
 export default function LabServicesList() {
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const [services, setServices] = useState(mockLabServices);
+  const { data: services, isLoading, error } = useLabServices();
+  const deleteLabService = useDeleteLabService();
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const handleDelete = () => {
     if (deleteId) {
-      setServices(services.filter((s) => s.id !== deleteId));
-      toast({
-        title: "Lab service deleted",
-        description: "The lab service has been removed.",
+      deleteLabService.mutate(deleteId, {
+        onSuccess: () => {
+          setDeleteId(null);
+        },
       });
-      setDeleteId(null);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background pb-24">
+        <header className="bg-primary text-primary-foreground px-4 py-4 sticky top-0 z-10">
+          <div className="flex items-center gap-3">
+            <Link to="/more" className="p-2 -ml-2 hover:bg-primary-dark rounded-lg transition-colors">
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+            <h1 className="text-xl font-semibold">Lab Services</h1>
+          </div>
+        </header>
+        <div className="p-4 text-center text-destructive">
+          Error loading lab services: {error.message}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -71,7 +87,7 @@ export default function LabServicesList() {
       </header>
 
       <main className="p-4">
-        {services.length > 0 ? (
+        {services && services.length > 0 ? (
           <div className="bg-card border border-border rounded-xl overflow-hidden">
             <Table>
               <TableHeader>
@@ -93,7 +109,7 @@ export default function LabServicesList() {
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
-                      {service.defaultCost ? `${service.defaultCost.toLocaleString()} EGP` : "-"}
+                      {service.default_cost ? `${service.default_cost.toLocaleString()} EGP` : "-"}
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-1">
@@ -108,6 +124,7 @@ export default function LabServicesList() {
                           variant="ghost"
                           size="icon"
                           onClick={() => setDeleteId(service.id)}
+                          disabled={deleteLabService.isPending}
                         >
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
@@ -146,8 +163,12 @@ export default function LabServicesList() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete
+            <AlertDialogAction 
+              onClick={handleDelete} 
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteLabService.isPending}
+            >
+              {deleteLabService.isPending ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

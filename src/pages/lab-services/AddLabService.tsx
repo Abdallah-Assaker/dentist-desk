@@ -1,24 +1,24 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
-
-const mockService = {
-  id: "1",
-  name: "Zirconia Crown",
-  defaultCost: 1500,
-  notes: "High-quality ceramic crown",
-};
+import { 
+  useLabService, 
+  useCreateLabService, 
+  useUpdateLabService 
+} from "@/hooks/useLabServices";
 
 export default function AddLabService() {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { id } = useParams();
   const isEditMode = Boolean(id);
+
+  const { data: existingService, isLoading: isLoadingService } = useLabService(id);
+  const createLabService = useCreateLabService();
+  const updateLabService = useUpdateLabService();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -27,27 +27,52 @@ export default function AddLabService() {
   });
 
   useEffect(() => {
-    if (isEditMode) {
+    if (isEditMode && existingService) {
       setFormData({
-        name: mockService.name,
-        defaultCost: mockService.defaultCost.toString(),
-        notes: mockService.notes,
+        name: existingService.name,
+        defaultCost: existingService.default_cost?.toString() || "",
+        notes: existingService.notes || "",
       });
     }
-  }, [isEditMode]);
+  }, [isEditMode, existingService]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: isEditMode ? "Lab service updated" : "Lab service added",
-      description: isEditMode
-        ? "Lab service has been updated successfully."
-        : "New lab service has been added successfully.",
-    });
-    navigate("/lab-services");
+    
+    const serviceData = {
+      name: formData.name.trim(),
+      default_cost: formData.defaultCost ? parseFloat(formData.defaultCost) : 0,
+      notes: formData.notes.trim() || null,
+    };
+
+    if (isEditMode && id) {
+      updateLabService.mutate(
+        { id, ...serviceData },
+        {
+          onSuccess: () => {
+            navigate("/lab-services");
+          },
+        }
+      );
+    } else {
+      createLabService.mutate(serviceData, {
+        onSuccess: () => {
+          navigate("/lab-services");
+        },
+      });
+    }
   };
 
   const isValid = formData.name.trim() !== "";
+  const isSubmitting = createLabService.isPending || updateLabService.isPending;
+
+  if (isEditMode && isLoadingService) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -106,8 +131,19 @@ export default function AddLabService() {
       </form>
 
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t border-border">
-        <Button onClick={handleSubmit} className="w-full" disabled={!isValid}>
-          {isEditMode ? "Update Service" : "Save Service"}
+        <Button 
+          onClick={handleSubmit} 
+          className="w-full" 
+          disabled={!isValid || isSubmitting}
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              {isEditMode ? "Updating..." : "Saving..."}
+            </>
+          ) : (
+            isEditMode ? "Update Service" : "Save Service"
+          )}
         </Button>
       </div>
     </div>
