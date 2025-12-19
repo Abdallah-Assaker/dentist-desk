@@ -42,7 +42,7 @@ export default function ProceduresList() {
             variant="ghost"
             size="icon"
             className="text-primary-foreground hover:bg-primary-foreground/20"
-            onClick={() => navigate(-1)}
+            onClick={() => navigate("/more")}
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
