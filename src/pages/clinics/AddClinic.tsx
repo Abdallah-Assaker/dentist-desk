@@ -7,60 +7,33 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useCreateClinic } from "@/hooks/useClinics";
 
-const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-
-interface WorkingDay {
-  day: string;
-  enabled: boolean;
-  startTime: string;
-  endTime: string;
-}
+const COLORS = ["clinic-1", "clinic-2", "clinic-3", "clinic-4", "clinic-5"];
 
 export default function AddClinic() {
   const navigate = useNavigate();
+  const createClinic = useCreateClinic();
+  
   const [formData, setFormData] = useState({
     name: "",
     location: "",
-    address: "",
-    phone: "",
-    notes: "",
     revenueModel: "percentage",
     revenueValue: "",
+    color: "clinic-1",
   });
-
-  const [workingSchedule, setWorkingSchedule] = useState<WorkingDay[]>(
-    DAYS.map((day) => ({
-      day,
-      enabled: day !== "Friday",
-      startTime: "09:00",
-      endTime: "17:00",
-    }))
-  );
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const toggleDay = (index: number) => {
-    setWorkingSchedule((prev) =>
-      prev.map((item, i) =>
-        i === index ? { ...item, enabled: !item.enabled } : item
-      )
-    );
-  };
-
-  const updateScheduleTime = (index: number, field: "startTime" | "endTime", value: string) => {
-    setWorkingSchedule((prev) =>
-      prev.map((item, i) =>
-        i === index ? { ...item, [field]: value } : item
-      )
-    );
-  };
-
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.name.trim()) {
       toast.error("Please enter clinic name");
+      return;
+    }
+    if (!formData.location.trim()) {
+      toast.error("Please enter clinic location");
       return;
     }
     if (!formData.revenueValue) {
@@ -68,7 +41,14 @@ export default function AddClinic() {
       return;
     }
 
-    toast.success("Clinic added successfully");
+    await createClinic.mutateAsync({
+      name: formData.name.trim(),
+      location: formData.location.trim(),
+      revenue_model: formData.revenueModel,
+      revenue_value: parseFloat(formData.revenueValue),
+      color: formData.color,
+    });
+
     navigate("/clinics");
   };
 
@@ -106,7 +86,7 @@ export default function AddClinic() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="location">Area / District</Label>
+            <Label htmlFor="location">Area / District *</Label>
             <div className="relative">
               <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
@@ -120,34 +100,20 @@ export default function AddClinic() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="address">Full Address</Label>
-            <Textarea
-              id="address"
-              placeholder="Street address, building, floor..."
-              value={formData.address}
-              onChange={(e) => handleInputChange("address", e.target.value)}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="phone">Phone Number</Label>
-            <Input
-              id="phone"
-              type="tel"
-              placeholder="Clinic phone number"
-              value={formData.phone}
-              onChange={(e) => handleInputChange("phone", e.target.value)}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea
-              id="notes"
-              placeholder="Any additional notes..."
-              value={formData.notes}
-              onChange={(e) => handleInputChange("notes", e.target.value)}
-            />
+            <Label>Clinic Color</Label>
+            <div className="flex gap-2">
+              {COLORS.map((color) => (
+                <button
+                  key={color}
+                  type="button"
+                  onClick={() => handleInputChange("color", color)}
+                  className={`w-10 h-10 rounded-xl transition-all ${
+                    formData.color === color ? "ring-2 ring-primary ring-offset-2" : ""
+                  }`}
+                  style={{ backgroundColor: `hsl(var(--${color}))` }}
+                />
+              ))}
+            </div>
           </div>
         </div>
 
@@ -190,59 +156,13 @@ export default function AddClinic() {
           </div>
         </div>
 
-        {/* Working Schedule */}
-        <div className="bg-card rounded-xl shadow-card p-4 space-y-4">
-          <h2 className="font-semibold text-foreground">Working Schedule</h2>
-
-          <div className="space-y-3">
-            {workingSchedule.map((schedule, index) => (
-              <div
-                key={schedule.day}
-                className={`flex items-center gap-3 p-3 rounded-lg border ${
-                  schedule.enabled ? "border-primary/30 bg-primary-light/30" : "border-border bg-muted/30"
-                }`}
-              >
-                <button
-                  type="button"
-                  onClick={() => toggleDay(index)}
-                  className={`w-10 h-6 rounded-full transition-colors ${
-                    schedule.enabled ? "bg-primary" : "bg-muted-foreground/30"
-                  } relative`}
-                >
-                  <span
-                    className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${
-                      schedule.enabled ? "right-1" : "left-1"
-                    }`}
-                  />
-                </button>
-                <span className={`w-24 font-medium ${schedule.enabled ? "text-foreground" : "text-muted-foreground"}`}>
-                  {schedule.day.slice(0, 3)}
-                </span>
-                {schedule.enabled && (
-                  <div className="flex items-center gap-2 flex-1">
-                    <Input
-                      type="time"
-                      value={schedule.startTime}
-                      onChange={(e) => updateScheduleTime(index, "startTime", e.target.value)}
-                      className="flex-1 h-8 text-sm"
-                    />
-                    <span className="text-muted-foreground">to</span>
-                    <Input
-                      type="time"
-                      value={schedule.endTime}
-                      onChange={(e) => updateScheduleTime(index, "endTime", e.target.value)}
-                      className="flex-1 h-8 text-sm"
-                    />
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
         {/* Save Button */}
-        <Button className="w-full h-12" onClick={handleSave}>
-          Save Clinic
+        <Button 
+          className="w-full h-12" 
+          onClick={handleSave}
+          disabled={createClinic.isPending}
+        >
+          {createClinic.isPending ? "Saving..." : "Save Clinic"}
         </Button>
 
         <div className="h-20" />

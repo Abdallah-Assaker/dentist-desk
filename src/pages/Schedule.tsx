@@ -9,6 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useClinics, getClinicColorClasses } from "@/hooks/useClinics";
 
 interface Appointment {
   id: string;
@@ -17,33 +18,19 @@ interface Appointment {
   procedure: string;
   time: string;
   endTime: string;
-  clinicColor: 1 | 2 | 3 | 4 | 5;
+  clinicColor: string;
 }
-
-const mockClinics = [
-  { id: "1", name: "Dental Care Clinic", color: 1 },
-  { id: "2", name: "Elite Dental Center", color: 2 },
-  { id: "3", name: "Smile Clinic", color: 3 },
-];
 
 const mockAppointments: Record<string, Appointment[]> = {
   "2025-12-13": [
-    { id: "1", patientName: "Sarah Ahmed", clinicName: "Dental Care Clinic", procedure: "Root Canal", time: "10:00", endTime: "10:45", clinicColor: 1 },
-    { id: "2", patientName: "Mohamed Ali", clinicName: "Elite Dental Center", procedure: "Cleaning", time: "14:30", endTime: "15:00", clinicColor: 2 },
-    { id: "3", patientName: "Fatima Hassan", clinicName: "Dental Care Clinic", procedure: "Crown Fitting", time: "16:00", endTime: "17:00", clinicColor: 1 },
+    { id: "1", patientName: "Sarah Ahmed", clinicName: "Dental Care Clinic", procedure: "Root Canal", time: "10:00", endTime: "10:45", clinicColor: "clinic-1" },
+    { id: "2", patientName: "Mohamed Ali", clinicName: "Elite Dental Center", procedure: "Cleaning", time: "14:30", endTime: "15:00", clinicColor: "clinic-2" },
+    { id: "3", patientName: "Fatima Hassan", clinicName: "Dental Care Clinic", procedure: "Crown Fitting", time: "16:00", endTime: "17:00", clinicColor: "clinic-1" },
   ],
   "2025-12-14": [
-    { id: "4", patientName: "Omar Khaled", clinicName: "Elite Dental Center", procedure: "Extraction", time: "09:00", endTime: "09:30", clinicColor: 2 },
-    { id: "5", patientName: "Nour Ibrahim", clinicName: "Smile Clinic", procedure: "Filling", time: "11:00", endTime: "11:30", clinicColor: 3 },
+    { id: "4", patientName: "Omar Khaled", clinicName: "Elite Dental Center", procedure: "Extraction", time: "09:00", endTime: "09:30", clinicColor: "clinic-2" },
+    { id: "5", patientName: "Nour Ibrahim", clinicName: "Smile Clinic", procedure: "Filling", time: "11:00", endTime: "11:30", clinicColor: "clinic-3" },
   ],
-};
-
-const clinicBgClasses = {
-  1: "bg-clinic-1",
-  2: "bg-clinic-2",
-  3: "bg-clinic-3",
-  4: "bg-clinic-4",
-  5: "bg-clinic-5",
 };
 
 const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -51,15 +38,23 @@ const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 export default function Schedule() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [view, setView] = useState<"daily" | "weekly">("daily");
-  const [selectedClinic, setSelectedClinic] = useState<string | null>(null);
+  const [selectedClinicId, setSelectedClinicId] = useState<string | null>(null);
+  
+  const { data: clinics = [] } = useClinics();
 
   const formatDateKey = (date: Date) => {
     return date.toISOString().split("T")[0];
   };
 
   const allAppointments = mockAppointments[formatDateKey(selectedDate)] || [];
-  const appointments = selectedClinic
-    ? allAppointments.filter((apt) => apt.clinicName === selectedClinic)
+  
+  // Find clinic name from ID
+  const selectedClinicName = selectedClinicId 
+    ? clinics.find(c => c.id === selectedClinicId)?.name 
+    : null;
+    
+  const appointments = selectedClinicName
+    ? allAppointments.filter((apt) => apt.clinicName === selectedClinicName)
     : allAppointments;
 
   const goToDate = (offset: number) => {
@@ -144,30 +139,33 @@ export default function Schedule() {
       <div className="px-4 py-3 flex gap-2 overflow-x-auto hide-scrollbar">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant={selectedClinic ? "default" : "outline"} size="sm" className="shrink-0">
+            <Button variant={selectedClinicId ? "default" : "outline"} size="sm" className="shrink-0">
               <Filter className="w-3 h-3 mr-1" />
-              {selectedClinic || "Clinic"}
-              {selectedClinic && (
+              {selectedClinicName || "Clinic"}
+              {selectedClinicId && (
                 <X
                   className="w-3 h-3 ml-1"
                   onClick={(e) => {
                     e.stopPropagation();
-                    setSelectedClinic(null);
+                    setSelectedClinicId(null);
                   }}
                 />
               )}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => setSelectedClinic(null)}>
+            <DropdownMenuItem onClick={() => setSelectedClinicId(null)}>
               All Clinics
             </DropdownMenuItem>
-            {mockClinics.map((clinic) => (
-              <DropdownMenuItem key={clinic.id} onClick={() => setSelectedClinic(clinic.name)}>
-                <div className={`w-2 h-2 rounded-full mr-2 ${clinicBgClasses[clinic.color as keyof typeof clinicBgClasses]}`} />
-                {clinic.name}
-              </DropdownMenuItem>
-            ))}
+            {clinics.map((clinic) => {
+              const colorClasses = getClinicColorClasses(clinic.color);
+              return (
+                <DropdownMenuItem key={clinic.id} onClick={() => setSelectedClinicId(clinic.id)}>
+                  <div className={`w-2 h-2 rounded-full mr-2 ${colorClasses.bg}`} />
+                  {clinic.name}
+                </DropdownMenuItem>
+              );
+            })}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -183,53 +181,55 @@ export default function Schedule() {
             </Link>
           </div>
         ) : (
-          appointments.map((apt) => (
-            <Link
-              key={apt.id}
-              to={`/appointments/${apt.id}`}
-              className="block bg-card rounded-xl overflow-hidden shadow-card card-hover"
-            >
-              <div className="flex">
-                <div className={`w-1.5 ${clinicBgClasses[apt.clinicColor]}`} />
-                <div className="flex-1 p-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="font-semibold text-foreground">{apt.patientName}</h3>
-                      <p className="text-sm text-primary font-medium">{apt.clinicName}</p>
-                      <p className="text-sm text-muted-foreground mt-1">{apt.procedure}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-foreground">{apt.time}</p>
-                      <p className="text-xs text-muted-foreground">to {apt.endTime}</p>
+          appointments.map((apt) => {
+            const colorClasses = getClinicColorClasses(apt.clinicColor);
+            return (
+              <Link
+                key={apt.id}
+                to={`/appointments/${apt.id}`}
+                className="block bg-card rounded-xl overflow-hidden shadow-card card-hover"
+              >
+                <div className="flex">
+                  <div className={`w-1.5 ${colorClasses.bg}`} />
+                  <div className="flex-1 p-4">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h3 className="font-semibold text-foreground">{apt.patientName}</h3>
+                        <p className="text-sm text-primary font-medium">{apt.clinicName}</p>
+                        <p className="text-sm text-muted-foreground mt-1">{apt.procedure}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-foreground">{apt.time}</p>
+                        <p className="text-xs text-muted-foreground">to {apt.endTime}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </Link>
-          ))
+              </Link>
+            );
+          })
         )}
       </div>
 
       {/* Clinic Legend */}
-      <div className="px-4 py-3">
-        <div className="bg-card rounded-xl p-3 shadow-card">
-          <p className="text-xs font-medium text-muted-foreground mb-2">Clinic Colors</p>
-          <div className="flex flex-wrap gap-3">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-clinic-1" />
-              <span className="text-xs text-foreground">Dental Care</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-clinic-2" />
-              <span className="text-xs text-foreground">Elite Dental</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-clinic-3" />
-              <span className="text-xs text-foreground">Smile Clinic</span>
+      {clinics.length > 0 && (
+        <div className="px-4 py-3">
+          <div className="bg-card rounded-xl p-3 shadow-card">
+            <p className="text-xs font-medium text-muted-foreground mb-2">Clinic Colors</p>
+            <div className="flex flex-wrap gap-3">
+              {clinics.slice(0, 5).map((clinic) => {
+                const colorClasses = getClinicColorClasses(clinic.color);
+                return (
+                  <div key={clinic.id} className="flex items-center gap-2">
+                    <div className={`w-3 h-3 rounded-full ${colorClasses.bg}`} />
+                    <span className="text-xs text-foreground">{clinic.name}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
