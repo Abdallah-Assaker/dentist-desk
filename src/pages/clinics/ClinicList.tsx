@@ -41,7 +41,7 @@ export default function ClinicList() {
       </header>
 
       {/* Clinic List */}
-      <div className="px-4 py-4 space-y-3 mt-2">
+      <div className="px-4 py-4 space-y-3 mt-4">
         {isLoading ? (
           // Loading skeletons
           Array.from({ length: 3 }).map((_, i) => (
