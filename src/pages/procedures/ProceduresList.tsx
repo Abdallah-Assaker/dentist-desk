@@ -1,15 +1,9 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Plus, Pencil, Trash2, Scissors, Loader2 } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, Scissors, Loader2, Search, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,7 +18,8 @@ import { useProcedures, useDeleteProcedure } from "@/hooks/useProcedures";
 
 export default function ProceduresList() {
   const navigate = useNavigate();
-  const { data: procedures = [], isLoading, error } = useProcedures();
+  const [searchQuery, setSearchQuery] = useState("");
+  const { data: procedures = [], isLoading, error } = useProcedures(searchQuery);
   const deleteProcedure = useDeleteProcedure();
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
@@ -38,66 +33,63 @@ export default function ProceduresList() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background pb-24">
-        <header className="bg-primary text-primary-foreground px-4 py-4 sticky top-0 z-10">
-          <div className="flex items-center gap-3">
-            <Link to="/more" className="p-2 -ml-2 hover:bg-primary-dark rounded-lg transition-colors">
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-            <h1 className="text-lg font-semibold">Procedures</h1>
-          </div>
-        </header>
-        <div className="flex items-center justify-center py-16">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-background pb-24">
-        <header className="bg-primary text-primary-foreground px-4 py-4 sticky top-0 z-10">
-          <div className="flex items-center gap-3">
-            <Link to="/more" className="p-2 -ml-2 hover:bg-primary-dark rounded-lg transition-colors">
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-            <h1 className="text-lg font-semibold">Procedures</h1>
-          </div>
-        </header>
-        <div className="flex flex-col items-center justify-center py-16 text-center px-4">
-          <p className="text-destructive">Failed to load procedures. Please try again.</p>
-          <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
-            Retry
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
-      <header className="bg-primary text-primary-foreground px-4 py-4 sticky top-0 z-10">
-        <div className="flex items-center gap-3">
-          <Link to="/more" className="p-2 -ml-2 hover:bg-primary-dark rounded-lg transition-colors">
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <h1 className="text-lg font-semibold">Procedures</h1>
+      <header className="gradient-header px-4 pt-4 pb-6 rounded-b-3xl">
+        <div className="flex items-center gap-3 mb-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-primary-foreground hover:bg-primary-foreground/20"
+            onClick={() => navigate(-1)}
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <h1 className="text-xl font-bold text-primary-foreground">Procedures</h1>
+        </div>
+
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Search procedures..."
+            className="pl-10 bg-card border-0 shadow-sm"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
       </header>
 
-      {/* Content */}
-      <div className="p-4">
-        {procedures.length === 0 ? (
+      {/* Procedures List */}
+      <div className="px-4 py-4 space-y-3 mt-4">
+        {isLoading ? (
+          // Loading skeletons
+          Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="bg-card rounded-xl shadow-card p-4">
+              <div className="flex items-start gap-3">
+                <Skeleton className="w-12 h-12 rounded-xl" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-5 w-32" />
+                  <Skeleton className="h-4 w-24" />
+                </div>
+              </div>
+            </div>
+          ))
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center px-4">
+            <p className="text-destructive">Failed to load procedures. Please try again.</p>
+            <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
+              Retry
+            </Button>
+          </div>
+        ) : procedures.length === 0 ? (
           /* Empty State */
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
               <Scissors className="h-8 w-8 text-muted-foreground" />
             </div>
-            <h2 className="text-lg font-semibold text-foreground mb-2">No procedures added yet</h2>
+            <h2 className="text-lg font-semibold text-foreground mb-2">No procedures found</h2>
             <p className="text-muted-foreground mb-6">Add your first procedure to get started</p>
             <Button onClick={() => navigate("/procedures/new")}>
               <Plus className="h-4 w-4 mr-2" />
@@ -105,61 +97,56 @@ export default function ProceduresList() {
             </Button>
           </div>
         ) : (
-          /* Procedures Table */
-          <div className="bg-card rounded-xl shadow-card overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Procedure Name</TableHead>
-                  <TableHead className="text-right">Cost</TableHead>
-                  <TableHead className="text-right w-[100px]">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {procedures.map((procedure) => (
-                  <TableRow key={procedure.id}>
-                    <TableCell className="font-medium">{procedure.name}</TableCell>
-                    <TableCell className="text-right text-primary font-medium">
-                      EGP {procedure.cost}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => navigate(`/procedures/${procedure.id}/edit`)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-destructive hover:text-destructive"
-                          onClick={() => setDeleteId(procedure.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          procedures.map((procedure) => (
+            <div
+              key={procedure.id}
+              className="bg-card rounded-xl shadow-card overflow-hidden"
+            >
+              <div className="flex items-center gap-3 p-4">
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <Scissors className="w-5 h-5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <h3 className="font-semibold text-foreground">{procedure.name}</h3>
+                      <p className="text-sm font-semibold text-primary mt-1">
+                        EGP {procedure.cost.toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => navigate(`/procedures/${procedure.id}/edit`)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive"
+                        onClick={() => setDeleteId(procedure.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))
         )}
       </div>
 
       {/* FAB */}
-      {procedures.length > 0 && (
-        <Button
-          onClick={() => navigate("/procedures/new")}
-          className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg"
-          size="icon"
-        >
-          <Plus className="h-6 w-6" />
-        </Button>
-      )}
+      <Link
+        to="/procedures/new"
+        className="fixed bottom-24 right-4 w-14 h-14 bg-primary rounded-full shadow-lg flex items-center justify-center"
+      >
+        <Plus className="w-6 h-6 text-primary-foreground" />
+      </Link>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
