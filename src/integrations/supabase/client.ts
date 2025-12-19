@@ -13,8 +13,8 @@ if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
 // import { supabase } from "@/integrations/supabase/client";
 
 export const supabase = createClient<Database>(
-  SUPABASE_URL || 'https://lliuchxuispxpgwubfdw.supabase.co',
-  SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxsaXVjaHh1aXNweHBnd3ViZmR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYxNzAxMDgsImV4cCI6MjA4MTc0NjEwOH0.IjChzUyu727KAJTduyGS03I1ujLSe2K9S2-GEn82YOo',
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY,
   {
     auth: {
       storage: localStorage,
