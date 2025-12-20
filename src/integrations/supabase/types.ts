@@ -50,6 +50,33 @@ export type Database = {
         }
         Relationships: []
       }
+      lab_services: {
+        Row: {
+          created_at: string
+          default_cost: number
+          id: string
+          name: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          default_cost?: number
+          id?: string
+          name: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_cost?: number
+          id?: string
+          name?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       procedures: {
         Row: {
           cost: number
