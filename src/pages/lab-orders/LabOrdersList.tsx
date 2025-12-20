@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { ArrowLeft, Plus, Filter, Phone, User, Building2, FlaskConical } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowLeft, Plus, Filter, User, Building2, FlaskConical, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -93,8 +94,10 @@ const statusConfig: Record<LabOrderStatus, { label: string; className: string }>
 };
 
 export default function LabOrdersList() {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const isLoading = false;
 
   const filteredOrders = mockLabOrders.filter((order) => {
     const matchesSearch =
@@ -114,38 +117,37 @@ export default function LabOrdersList() {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      <header className="bg-primary text-primary-foreground px-4 py-4 sticky top-0 z-10">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link
-              to="/more"
-              className="p-2 -ml-2 hover:bg-primary-foreground/10 rounded-lg transition-colors"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-            <h1 className="text-xl font-semibold">Lab Orders</h1>
-          </div>
-          <Link to="/lab-orders/new">
-            <Button size="sm" variant="secondary">
-              <Plus className="h-4 w-4 mr-1" />
-              Create
-            </Button>
-          </Link>
+      {/* Header */}
+      <header className="gradient-header px-4 pt-4 pb-6 rounded-b-3xl">
+        <div className="flex items-center gap-3 mb-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-primary-foreground hover:bg-primary-foreground/20"
+            onClick={() => navigate("/more")}
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <h1 className="text-xl font-bold text-primary-foreground">Lab Orders</h1>
         </div>
-      </header>
 
-      <div className="p-4 space-y-4">
-        <div className="flex gap-2">
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Search orders..."
+            className="pl-10 bg-card border-0 shadow-sm"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1"
           />
+        </div>
+
+        {/* Status Filter */}
+        <div className="mt-3">
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger className="bg-card border-0 shadow-sm">
               <Filter className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Filter" />
+              <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Statuses</SelectItem>
@@ -156,59 +158,100 @@ export default function LabOrdersList() {
             </SelectContent>
           </Select>
         </div>
+      </header>
 
-        {filteredOrders.length === 0 ? (
-          <div className="text-center py-12">
-            <FlaskConical className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <p className="text-muted-foreground mb-4">No lab orders recorded yet</p>
-            <Link to="/lab-orders/new">
-              <Button>Create Lab Order</Button>
-            </Link>
+      {/* Lab Orders List */}
+      <div className="px-4 py-4 space-y-3 mt-4">
+        {isLoading ? (
+          // Loading skeletons
+          Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="bg-card rounded-xl shadow-card p-4">
+              <div className="flex items-start gap-3">
+                <Skeleton className="w-12 h-12 rounded-xl" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-5 w-32" />
+                  <Skeleton className="h-4 w-24" />
+                </div>
+              </div>
+            </div>
+          ))
+        ) : filteredOrders.length === 0 ? (
+          /* Empty State */
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+              <FlaskConical className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h2 className="text-lg font-semibold text-foreground mb-2">No lab orders found</h2>
+            <p className="text-muted-foreground mb-6">Create your first lab order to get started</p>
+            <Button onClick={() => navigate("/lab-orders/new")}>
+              <Plus className="h-4 w-4 mr-2" />
+              Create Lab Order
+            </Button>
           </div>
         ) : (
-          <div className="space-y-3">
-            {filteredOrders.map((order) => (
-              <Link
-                key={order.id}
-                to={`/lab-orders/${order.id}`}
-                className="block bg-card rounded-lg border border-border p-4 hover:shadow-md transition-shadow"
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium text-foreground">{order.patientName}</span>
+          filteredOrders.map((order) => (
+            <Link
+              key={order.id}
+              to={`/lab-orders/${order.id}`}
+              className="block"
+            >
+              <div className="bg-card rounded-xl shadow-card overflow-hidden">
+                <div className="p-4">
+                  {/* Header Row */}
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <User className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-foreground">{order.patientName}</h3>
+                        <p className="text-xs text-muted-foreground">{order.clinicName}</p>
+                      </div>
+                    </div>
+                    <Badge className={statusConfig[order.status].className}>
+                      {statusConfig[order.status].label}
+                    </Badge>
                   </div>
-                  <Badge className={statusConfig[order.status].className}>
-                    {statusConfig[order.status].label}
-                  </Badge>
-                </div>
 
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Building2 className="h-4 w-4" />
-                    <span>{order.clinicName}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-muted-foreground">
+                  {/* Lab Info */}
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
                     <FlaskConical className="h-4 w-4" />
                     <span>{order.labName}</span>
                   </div>
-                  <div className="flex flex-wrap gap-1 mt-2">
+
+                  {/* Services */}
+                  <div className="flex flex-wrap gap-1 mb-3">
                     {order.labServices.map((service, idx) => (
                       <Badge key={idx} variant="outline" className="text-xs">
                         {service}
                       </Badge>
                     ))}
                   </div>
-                  <div className="flex justify-between text-xs text-muted-foreground mt-3 pt-2 border-t border-border">
+
+                  {/* Cost */}
+                  <p className="text-sm font-semibold text-primary mb-3">
+                    EGP {order.cost.toLocaleString()}
+                  </p>
+
+                  {/* Dates Footer */}
+                  <div className="flex justify-between text-xs text-muted-foreground pt-3 border-t border-border">
                     <span>Last: {formatDate(order.lastAppointmentDate)}</span>
                     <span>Next: {formatDate(order.nextAppointmentDate)}</span>
                   </div>
                 </div>
-              </Link>
-            ))}
-          </div>
+              </div>
+            </Link>
+          ))
         )}
       </div>
+
+      {/* FAB */}
+      <Link
+        to="/lab-orders/new"
+        className="fixed bottom-24 right-4 w-14 h-14 bg-primary rounded-full shadow-lg flex items-center justify-center"
+      >
+        <Plus className="w-6 h-6 text-primary-foreground" />
+      </Link>
     </div>
   );
 }
