@@ -1,12 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-
-// Static Supabase credentials
-const SUPABASE_URL = 'https://mtmdwmvxgxtbcyeuwomr.supabase.co';
-const SUPABASE_PUBLISHABLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10bWR3bXZ4Z3h0YmN5ZXV3b21yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYxNzQzOTEsImV4cCI6MjA4MTc1MDM5MX0.tvTf4NpDRzYzM7lF6KPXn5zyBfDtkoGqTu9FLxoWzlo';
-
-const supabaseClient = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
 export interface LabService {
   id: string;
@@ -29,7 +23,7 @@ export function useLabServices(search?: string) {
     queryFn: async () => {
       const term = search?.trim();
       if (term) {
-        const { data, error } = await supabaseClient
+        const { data, error } = await supabase
           .from("lab_services")
           .select("*")
           .ilike("name", `%${term}%`)
@@ -39,7 +33,7 @@ export function useLabServices(search?: string) {
         return data as LabService[];
       }
 
-      const { data, error } = await supabaseClient
+      const { data, error } = await supabase
         .from("lab_services")
         .select("*")
         .order("name");
@@ -55,7 +49,7 @@ export function useLabService(id: string | undefined) {
     queryKey: ["lab_services", id],
     queryFn: async () => {
       if (!id) return null;
-      const { data, error } = await supabaseClient
+      const { data, error } = await supabase
         .from("lab_services")
         .select("*")
         .eq("id", id)
@@ -73,7 +67,7 @@ export function useCreateLabService() {
   
   return useMutation({
     mutationFn: async (labService: LabServiceFormData) => {
-      const { data, error } = await supabaseClient
+      const { data, error } = await supabase
         .from("lab_services")
         .insert([labService])
         .select()
@@ -97,7 +91,7 @@ export function useUpdateLabService() {
   
   return useMutation({
     mutationFn: async ({ id, ...labService }: LabServiceFormData & { id: string }) => {
-      const { data, error } = await supabaseClient
+      const { data, error } = await supabase
         .from("lab_services")
         .update(labService)
         .eq("id", id)
@@ -122,7 +116,7 @@ export function useDeleteLabService() {
   
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabaseClient
+      const { error } = await supabase
         .from("lab_services")
         .delete()
         .eq("id", id);
