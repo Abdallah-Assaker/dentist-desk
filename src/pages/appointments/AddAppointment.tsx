@@ -13,6 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useClinics } from "@/hooks/useClinics";
 
 const clinics = [
   { id: "1", name: "Dental Care Clinic" },
