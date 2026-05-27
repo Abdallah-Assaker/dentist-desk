@@ -15,10 +15,6 @@ import {
 } from "@/components/ui/dialog";
 import { useClinics } from "@/hooks/useClinics";
 
-const clinics = [
-  { id: "1", name: "Dental Care Clinic" },
-  { id: "2", name: "Elite Dental Center" },
-];
 
 const mockPatients = [
   { id: "1", name: "Sarah Ahmed", phone: "01012345678" },
