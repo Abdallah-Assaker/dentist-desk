@@ -15,7 +15,7 @@ interface Appointment {
   id: string;
   patientName: string;
   clinicName: string;
-  procedure: string;
+  details: string;
   date: string;
   time: string;
   endTime: string;
@@ -70,8 +70,8 @@ export default function Schedule() {
       return {
         id: appointment.id,
         patientName: appointment.patient_name,
-        clinicName: clinic?.name || "Clinic not found",
-        procedure: "Appointment",
+        clinicName: clinic?.name || "Unknown clinic",
+        details: appointment.notes?.trim() || "Appointment",
         date: appointment.appointment_date,
         time: formattedTime,
         endTime: addMinutesToTime(formattedTime, appointment.duration_minutes),
@@ -275,7 +275,7 @@ export default function Schedule() {
                         <div>
                           <h3 className="font-semibold text-foreground">{apt.patientName}</h3>
                           <p className="text-sm text-primary font-medium">{apt.clinicName}</p>
-                          <p className="text-sm text-muted-foreground mt-1">{apt.procedure}</p>
+                          <p className="text-sm text-muted-foreground mt-1">{apt.details}</p>
                         </div>
                         <div className="text-right">
                           <p className="font-bold text-foreground">{apt.time}</p>
