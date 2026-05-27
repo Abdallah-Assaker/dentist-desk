@@ -201,11 +201,17 @@ export default function AddMaterialPurchase() {
                   <SelectValue placeholder="Select clinic" />
                 </SelectTrigger>
                 <SelectContent>
+                  {clinicsLoading && (
+                    <SelectItem value="loading" disabled>Loading...</SelectItem>
+                  )}
                   {clinics.map((clinic) => (
                     <SelectItem key={clinic.id} value={clinic.id}>
                       {clinic.name}
                     </SelectItem>
                   ))}
+                  {!clinicsLoading && clinics.length === 0 && (
+                    <SelectItem value="none" disabled>No clinics found</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
