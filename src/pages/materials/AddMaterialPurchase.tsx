@@ -6,16 +6,12 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useClinics } from "@/hooks/useClinics";
 
 const suppliers = [
   { id: "1", name: "Dental Supplies Co." },
   { id: "2", name: "MedEquip Egypt" },
   { id: "3", name: "ProDent Materials" },
-];
-
-const clinics = [
-  { id: "1", name: "Dental Care Clinic" },
-  { id: "2", name: "Elite Dental Center" },
 ];
 
 const materials = [
