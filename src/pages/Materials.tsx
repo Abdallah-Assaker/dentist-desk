@@ -36,6 +36,7 @@ export default function Materials() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showLowStockOnly, setShowLowStockOnly] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
+  const { data: clinics = [] } = useClinics();
 
   const filteredMaterials = mockMaterials.filter((material) => {
     const matchesSearch = material.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -116,7 +117,7 @@ export default function Materials() {
             <DropdownMenuItem onClick={() => setSelectedLocation("Global")}>
               Global
             </DropdownMenuItem>
-            {mockClinics.map((clinic) => (
+            {clinics.map((clinic) => (
               <DropdownMenuItem key={clinic.id} onClick={() => setSelectedLocation(clinic.name)}>
                 {clinic.name}
               </DropdownMenuItem>
