@@ -36,6 +36,7 @@ export default function AddAppointment() {
   const navigate = useNavigate();
   const [patientSearch, setPatientSearch] = useState("");
   const [isPatientDialogOpen, setIsPatientDialogOpen] = useState(false);
+  const { data: clinics = [], isLoading: clinicsLoading } = useClinics();
   const [formData, setFormData] = useState({
     patientId: "",
     patientName: "",
@@ -158,11 +159,17 @@ export default function AddAppointment() {
               <SelectValue placeholder="Select clinic" />
             </SelectTrigger>
             <SelectContent>
+              {clinicsLoading && (
+                <SelectItem value="loading" disabled>Loading...</SelectItem>
+              )}
               {clinics.map((clinic) => (
                 <SelectItem key={clinic.id} value={clinic.id}>
                   {clinic.name}
                 </SelectItem>
               ))}
+              {!clinicsLoading && clinics.length === 0 && (
+                <SelectItem value="none" disabled>No clinics found</SelectItem>
+              )}
             </SelectContent>
           </Select>
         </section>
