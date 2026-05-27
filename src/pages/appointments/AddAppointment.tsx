@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Search, User } from "lucide-react";
+import { ArrowLeft, Loader2, Search, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useClinics } from "@/hooks/useClinics";
+import { useCreateAppointment } from "@/hooks/useAppointments";
 
 
 const mockPatients = [
@@ -37,6 +38,7 @@ export default function AddAppointment() {
   const [patientSearch, setPatientSearch] = useState("");
   const [isPatientDialogOpen, setIsPatientDialogOpen] = useState(false);
   const { data: clinics = [], isLoading: clinicsLoading } = useClinics();
+  const createAppointment = useCreateAppointment();
   const [formData, setFormData] = useState({
     patientId: "",
     patientName: "",
@@ -59,11 +61,30 @@ export default function AddAppointment() {
     setPatientSearch("");
   };
 
+  const submitAppointment = () => {
+    if (!isValid || createAppointment.isPending) return;
+
+    createAppointment.mutate(
+      {
+        patient_id: formData.patientId,
+        patient_name: formData.patientName,
+        clinic_id: formData.clinicId,
+        appointment_date: formData.date,
+        appointment_time: formData.time,
+        duration_minutes: Number(formData.duration),
+        notes: formData.notes.trim() || undefined,
+      },
+      {
+        onSuccess: () => {
+          navigate("/schedule");
+        },
+      }
+    );
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // In real app, create appointment and get ID
-    const newAppointmentId = "apt-" + Date.now();
-    navigate(`/appointments/${newAppointmentId}`);
+    submitAppointment();
   };
 
   const isValid =
@@ -231,8 +252,15 @@ export default function AddAppointment() {
 
       {/* Fixed Footer */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t border-border">
-        <Button onClick={handleSubmit} className="w-full" disabled={!isValid}>
-          Save Appointment
+        <Button onClick={submitAppointment} className="w-full" disabled={!isValid || createAppointment.isPending}>
+          {createAppointment.isPending ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            "Save Appointment"
+          )}
         </Button>
       </div>
     </div>

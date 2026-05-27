@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Plus, Clock, Filter, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Clock, Filter, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -9,28 +9,19 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useClinics, getClinicColorClasses } from "@/hooks/useClinics";
+import { useAppointments } from "@/hooks/useAppointments";
 
 interface Appointment {
   id: string;
   patientName: string;
   clinicName: string;
-  procedure: string;
+  details: string;
+  date: string;
   time: string;
   endTime: string;
   clinicColor: string;
+  clinicId: string;
 }
-
-const mockAppointments: Record<string, Appointment[]> = {
-  "2025-12-13": [
-    { id: "1", patientName: "Sarah Ahmed", clinicName: "Dental Care Clinic", procedure: "Root Canal", time: "10:00", endTime: "10:45", clinicColor: "clinic-1" },
-    { id: "2", patientName: "Mohamed Ali", clinicName: "Elite Dental Center", procedure: "Cleaning", time: "14:30", endTime: "15:00", clinicColor: "clinic-2" },
-    { id: "3", patientName: "Fatima Hassan", clinicName: "Dental Care Clinic", procedure: "Crown Fitting", time: "16:00", endTime: "17:00", clinicColor: "clinic-1" },
-  ],
-  "2025-12-14": [
-    { id: "4", patientName: "Omar Khaled", clinicName: "Elite Dental Center", procedure: "Extraction", time: "09:00", endTime: "09:30", clinicColor: "clinic-2" },
-    { id: "5", patientName: "Nour Ibrahim", clinicName: "Smile Clinic", procedure: "Filling", time: "11:00", endTime: "11:30", clinicColor: "clinic-3" },
-  ],
-};
 
 const weekdayLabels = ["S", "M", "T", "W", "T", "F", "S"];
 
@@ -45,6 +36,19 @@ function isSameDay(a: Date, b: Date) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 }
 
+function formatTime(timeValue: string) {
+  const [hour = "00", minute = "00"] = timeValue.split(":");
+  return `${hour.padStart(2, "0")}:${minute.padStart(2, "0")}`;
+}
+
+function addMinutesToTime(timeValue: string, minutesToAdd: number) {
+  const [hour = "0", minute = "0"] = timeValue.split(":");
+  const totalMinutes = Number(hour) * 60 + Number(minute) + minutesToAdd;
+  const hours = String(Math.floor((totalMinutes % (24 * 60)) / 60)).padStart(2, "0");
+  const minutes = String(totalMinutes % 60).padStart(2, "0");
+  return `${hours}:${minutes}`;
+}
+
 export default function Schedule() {
   const today = new Date();
   const [selectedDate, setSelectedDate] = useState<Date>(today);
@@ -52,10 +56,30 @@ export default function Schedule() {
   const [selectedClinicId, setSelectedClinicId] = useState<string | null>(null);
 
   const { data: clinics = [] } = useClinics();
-
+  const { data: appointments = [], isLoading: appointmentsLoading, error: appointmentsError, refetch: refetchAppointments } = useAppointments();
   const selectedClinicName = selectedClinicId
-    ? clinics.find((c) => c.id === selectedClinicId)?.name
+    ? clinics.find((clinic) => clinic.id === selectedClinicId)?.name
     : null;
+  const normalizedAppointments = useMemo(() => {
+    const clinicsById = new Map(clinics.map((clinic) => [clinic.id, clinic]));
+
+    return appointments.map((appointment): Appointment => {
+      const clinic = clinicsById.get(appointment.clinic_id);
+      const formattedTime = formatTime(appointment.appointment_time);
+
+      return {
+        id: appointment.id,
+        patientName: appointment.patient_name,
+        clinicName: clinic?.name || "Unknown clinic",
+        details: appointment.notes?.trim() || "Appointment",
+        date: appointment.appointment_date,
+        time: formattedTime,
+        endTime: addMinutesToTime(formattedTime, appointment.duration_minutes),
+        clinicColor: clinic?.color || "blue",
+        clinicId: appointment.clinic_id,
+      };
+    });
+  }, [appointments, clinics]);
 
   // Build calendar grid (6 weeks)
   const calendarDays = useMemo(() => {
@@ -70,8 +94,8 @@ export default function Schedule() {
   }, [viewMonth]);
 
   const getAppointmentsForDate = (date: Date) => {
-    const list = mockAppointments[formatDateKey(date)] || [];
-    return selectedClinicName ? list.filter((a) => a.clinicName === selectedClinicName) : list;
+    const list = normalizedAppointments.filter((appointment) => appointment.date === formatDateKey(date));
+    return selectedClinicId ? list.filter((appointment) => appointment.clinicId === selectedClinicId) : list;
   };
 
   const selectedAppointments = getAppointmentsForDate(selectedDate);
@@ -212,6 +236,19 @@ export default function Schedule() {
         </h3>
         <div className="space-y-3">
           {selectedAppointments.length === 0 ? (
+            appointmentsLoading ? (
+              <div className="text-center py-12 bg-card rounded-xl shadow-card">
+                <Loader2 className="w-12 h-12 text-muted-foreground mx-auto mb-3 animate-spin" />
+                <p className="text-muted-foreground">Loading appointments...</p>
+              </div>
+            ) : appointmentsError ? (
+              <div className="text-center py-12 bg-card rounded-xl shadow-card px-4">
+                <p className="text-destructive">Failed to load appointments.</p>
+                <Button variant="outline" size="sm" className="mt-4" onClick={() => refetchAppointments()}>
+                  Retry
+                </Button>
+              </div>
+            ) : (
             <div className="text-center py-12 bg-card rounded-xl shadow-card">
               <Clock className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
               <p className="text-muted-foreground">No appointments scheduled</p>
@@ -221,6 +258,7 @@ export default function Schedule() {
                 </Button>
               </Link>
             </div>
+            )
           ) : (
             selectedAppointments.map((apt) => {
               const colorClasses = getClinicColorClasses(apt.clinicColor);
@@ -237,7 +275,7 @@ export default function Schedule() {
                         <div>
                           <h3 className="font-semibold text-foreground">{apt.patientName}</h3>
                           <p className="text-sm text-primary font-medium">{apt.clinicName}</p>
-                          <p className="text-sm text-muted-foreground mt-1">{apt.procedure}</p>
+                          <p className="text-sm text-muted-foreground mt-1">{apt.details}</p>
                         </div>
                         <div className="text-right">
                           <p className="font-bold text-foreground">{apt.time}</p>
