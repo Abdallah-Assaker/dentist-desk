@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
+import { useClinics } from "@/hooks/useClinics";
 
 const mockPatients = [
   { id: "1", name: "Ahmed Hassan" },
@@ -41,11 +42,6 @@ const mockLabServices = [
   { id: "5", name: "Implant Crown", defaultCost: 2000 },
 ];
 
-const mockClinics = [
-  { id: "1", name: "Cairo Dental Center" },
-  { id: "2", name: "Giza Medical Complex" },
-  { id: "3", name: "Alexandria Clinic" },
-];
 
 type CostBearer = "dentist" | "patient" | "clinic" | "dentist_clinic" | "clinic_model";
 
