@@ -70,8 +70,8 @@ export default function Schedule() {
       return {
         id: appointment.id,
         patientName: appointment.patient_name,
-        clinicName: clinic?.name || "Unknown clinic",
-        procedure: appointment.notes?.trim() || "Appointment",
+        clinicName: clinic?.name || "Clinic not found",
+        procedure: "Appointment",
         date: appointment.appointment_date,
         time: formattedTime,
         endTime: addMinutesToTime(formattedTime, appointment.duration_minutes),

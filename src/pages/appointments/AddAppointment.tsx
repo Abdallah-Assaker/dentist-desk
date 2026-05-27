@@ -61,8 +61,7 @@ export default function AddAppointment() {
     setPatientSearch("");
   };
 
-  const handleSubmit = (e?: React.FormEvent) => {
-    e?.preventDefault();
+  const submitAppointment = () => {
     if (!isValid || createAppointment.isPending) return;
 
     createAppointment.mutate(
@@ -81,6 +80,11 @@ export default function AddAppointment() {
         },
       }
     );
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    submitAppointment();
   };
 
   const isValid =
@@ -248,7 +252,7 @@ export default function AddAppointment() {
 
       {/* Fixed Footer */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t border-border">
-        <Button onClick={() => handleSubmit()} className="w-full" disabled={!isValid || createAppointment.isPending}>
+        <Button onClick={submitAppointment} className="w-full" disabled={!isValid || createAppointment.isPending}>
           {createAppointment.isPending ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
