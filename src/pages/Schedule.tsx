@@ -1,8 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Plus, Clock, Filter, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,54 +32,59 @@ const mockAppointments: Record<string, Appointment[]> = {
   ],
 };
 
-const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const weekdayLabels = ["S", "M", "T", "W", "T", "F", "S"];
+
+function formatDateKey(date: Date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function isSameDay(a: Date, b: Date) {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
 
 export default function Schedule() {
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [view, setView] = useState<"daily" | "weekly">("daily");
+  const today = new Date();
+  const [selectedDate, setSelectedDate] = useState<Date>(today);
+  const [viewMonth, setViewMonth] = useState<Date>(new Date(today.getFullYear(), today.getMonth(), 1));
   const [selectedClinicId, setSelectedClinicId] = useState<string | null>(null);
-  
+
   const { data: clinics = [] } = useClinics();
 
-  const formatDateKey = (date: Date) => {
-    return date.toISOString().split("T")[0];
-  };
-
-  const allAppointments = mockAppointments[formatDateKey(selectedDate)] || [];
-  
-  // Find clinic name from ID
-  const selectedClinicName = selectedClinicId 
-    ? clinics.find(c => c.id === selectedClinicId)?.name 
+  const selectedClinicName = selectedClinicId
+    ? clinics.find((c) => c.id === selectedClinicId)?.name
     : null;
-    
-  const appointments = selectedClinicName
-    ? allAppointments.filter((apt) => apt.clinicName === selectedClinicName)
-    : allAppointments;
 
-  const goToDate = (offset: number) => {
-    const newDate = new Date(selectedDate);
-    newDate.setDate(newDate.getDate() + offset);
-    setSelectedDate(newDate);
-  };
-
-  // Generate week days
-  const getWeekDays = () => {
-    const start = new Date(selectedDate);
-    start.setDate(start.getDate() - start.getDay());
-    return Array.from({ length: 7 }, (_, i) => {
-      const day = new Date(start);
-      day.setDate(start.getDate() + i);
-      return day;
+  // Build calendar grid (6 weeks)
+  const calendarDays = useMemo(() => {
+    const firstOfMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth(), 1);
+    const gridStart = new Date(firstOfMonth);
+    gridStart.setDate(gridStart.getDate() - firstOfMonth.getDay());
+    return Array.from({ length: 42 }, (_, i) => {
+      const d = new Date(gridStart);
+      d.setDate(gridStart.getDate() + i);
+      return d;
     });
+  }, [viewMonth]);
+
+  const getAppointmentsForDate = (date: Date) => {
+    const list = mockAppointments[formatDateKey(date)] || [];
+    return selectedClinicName ? list.filter((a) => a.clinicName === selectedClinicName) : list;
   };
 
-  const weekDays = getWeekDays();
+  const selectedAppointments = getAppointmentsForDate(selectedDate);
+
+  const goToMonth = (offset: number) => {
+    setViewMonth(new Date(viewMonth.getFullYear(), viewMonth.getMonth() + offset, 1));
+  };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-24">
       {/* Header */}
       <header className="gradient-header px-4 pt-6 pb-4 rounded-b-3xl">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold text-primary-foreground">Schedule</h1>
           <Link to="/appointments/new">
             <Button size="sm" className="bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground border-0">
@@ -88,54 +92,9 @@ export default function Schedule() {
             </Button>
           </Link>
         </div>
-
-        {/* View Toggle */}
-        <Tabs value={view} onValueChange={(v) => setView(v as "daily" | "weekly")} className="mb-4">
-          <TabsList className="bg-primary-foreground/20 w-full">
-            <TabsTrigger value="daily" className="flex-1 text-primary-foreground data-[state=active]:bg-primary-foreground data-[state=active]:text-primary">Daily</TabsTrigger>
-            <TabsTrigger value="weekly" className="flex-1 text-primary-foreground data-[state=active]:bg-primary-foreground data-[state=active]:text-primary">Weekly</TabsTrigger>
-          </TabsList>
-        </Tabs>
-
-        {/* Date Navigation */}
-        <div className="flex items-center justify-between">
-          <Button variant="ghost" size="icon" onClick={() => goToDate(-1)} className="text-primary-foreground hover:bg-primary-foreground/10">
-            <ChevronLeft className="w-5 h-5" />
-          </Button>
-          <h2 className="text-primary-foreground font-semibold">
-            {selectedDate.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
-          </h2>
-          <Button variant="ghost" size="icon" onClick={() => goToDate(1)} className="text-primary-foreground hover:bg-primary-foreground/10">
-            <ChevronRight className="w-5 h-5" />
-          </Button>
-        </div>
       </header>
 
-      {/* Week Days Selector */}
-      <div className="px-4 py-3 flex gap-2 overflow-x-auto hide-scrollbar">
-        {weekDays.map((day) => {
-          const isSelected = formatDateKey(day) === formatDateKey(selectedDate);
-          const isToday = formatDateKey(day) === formatDateKey(new Date());
-          return (
-            <button
-              key={day.toISOString()}
-              onClick={() => setSelectedDate(day)}
-              className={`flex flex-col items-center min-w-[48px] py-2 px-3 rounded-xl transition-all ${
-                isSelected
-                  ? "bg-primary text-primary-foreground shadow-md"
-                  : isToday
-                  ? "bg-primary-light text-primary"
-                  : "bg-card text-foreground"
-              }`}
-            >
-              <span className="text-xs font-medium">{days[day.getDay()]}</span>
-              <span className="text-lg font-bold">{day.getDate()}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Filters */}
+      {/* Filter */}
       <div className="px-4 py-3 flex gap-2 overflow-x-auto hide-scrollbar">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -154,9 +113,7 @@ export default function Schedule() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => setSelectedClinicId(null)}>
-              All Clinics
-            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSelectedClinicId(null)}>All Clinics</DropdownMenuItem>
             {clinics.map((clinic) => {
               const colorClasses = getClinicColorClasses(clinic.color);
               return (
@@ -170,50 +127,135 @@ export default function Schedule() {
         </DropdownMenu>
       </div>
 
-      {/* Appointments */}
-      <div className="px-4 py-4 space-y-3">
-        {appointments.length === 0 ? (
-          <div className="text-center py-12 bg-card rounded-xl shadow-card">
-            <Clock className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-            <p className="text-muted-foreground">No appointments scheduled</p>
-            <Link to="/appointments/new">
-              <Button className="mt-4" size="sm">Book Appointment</Button>
-            </Link>
+      {/* Calendar */}
+      <div className="px-4">
+        <div className="bg-card rounded-2xl shadow-card p-3">
+          {/* Month nav */}
+          <div className="flex items-center justify-between mb-3">
+            <Button variant="ghost" size="icon" onClick={() => goToMonth(-1)}>
+              <ChevronLeft className="w-5 h-5" />
+            </Button>
+            <h2 className="font-semibold text-foreground">
+              {viewMonth.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+            </h2>
+            <Button variant="ghost" size="icon" onClick={() => goToMonth(1)}>
+              <ChevronRight className="w-5 h-5" />
+            </Button>
           </div>
-        ) : (
-          appointments.map((apt) => {
-            const colorClasses = getClinicColorClasses(apt.clinicColor);
-            return (
-              <Link
-                key={apt.id}
-                to={`/appointments/${apt.id}`}
-                className="block bg-card rounded-xl overflow-hidden shadow-card card-hover"
-              >
-                <div className="flex">
-                  <div className={`w-1.5 ${colorClasses.bg}`} />
-                  <div className="flex-1 p-4">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h3 className="font-semibold text-foreground">{apt.patientName}</h3>
-                        <p className="text-sm text-primary font-medium">{apt.clinicName}</p>
-                        <p className="text-sm text-muted-foreground mt-1">{apt.procedure}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-foreground">{apt.time}</p>
-                        <p className="text-xs text-muted-foreground">to {apt.endTime}</p>
+
+          {/* Weekday header */}
+          <div className="grid grid-cols-7 gap-1 mb-1">
+            {weekdayLabels.map((d, i) => (
+              <div key={i} className="text-center text-xs font-medium text-muted-foreground py-1">
+                {d}
+              </div>
+            ))}
+          </div>
+
+          {/* Days grid */}
+          <div className="grid grid-cols-7 gap-1">
+            {calendarDays.map((day) => {
+              const inMonth = day.getMonth() === viewMonth.getMonth();
+              const isSelected = isSameDay(day, selectedDate);
+              const isToday = isSameDay(day, today);
+              const dayAppts = getAppointmentsForDate(day);
+              const count = dayAppts.length;
+              const uniqueColors = Array.from(new Set(dayAppts.map((a) => a.clinicColor))).slice(0, 4);
+
+              return (
+                <button
+                  key={day.toISOString()}
+                  onClick={() => setSelectedDate(day)}
+                  className={`relative aspect-square flex flex-col items-center justify-start pt-1.5 rounded-lg transition-all ${
+                    isSelected
+                      ? "bg-primary text-primary-foreground shadow-md"
+                      : isToday
+                      ? "bg-primary-light text-primary"
+                      : inMonth
+                      ? "text-foreground hover:bg-muted"
+                      : "text-muted-foreground/50 hover:bg-muted"
+                  }`}
+                >
+                  <span className="text-sm font-semibold leading-none">{day.getDate()}</span>
+
+                  {count > 0 && (
+                    <span
+                      className={`mt-0.5 text-[10px] font-bold leading-none px-1.5 py-0.5 rounded-full ${
+                        isSelected
+                          ? "bg-primary-foreground/25 text-primary-foreground"
+                          : "bg-primary/10 text-primary"
+                      }`}
+                    >
+                      {count}
+                    </span>
+                  )}
+
+                  {uniqueColors.length > 0 && (
+                    <div className="absolute bottom-1 flex gap-0.5">
+                      {uniqueColors.map((c, idx) => {
+                        const cc = getClinicColorClasses(c);
+                        return <span key={idx} className={`w-1.5 h-1.5 rounded-full ${cc.bg}`} />;
+                      })}
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Selected day appointments */}
+      <div className="px-4 mt-4">
+        <h3 className="text-sm font-semibold text-foreground mb-3">
+          {selectedDate.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+        </h3>
+        <div className="space-y-3">
+          {selectedAppointments.length === 0 ? (
+            <div className="text-center py-12 bg-card rounded-xl shadow-card">
+              <Clock className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+              <p className="text-muted-foreground">No appointments scheduled</p>
+              <Link to="/appointments/new">
+                <Button className="mt-4" size="sm">
+                  Book Appointment
+                </Button>
+              </Link>
+            </div>
+          ) : (
+            selectedAppointments.map((apt) => {
+              const colorClasses = getClinicColorClasses(apt.clinicColor);
+              return (
+                <Link
+                  key={apt.id}
+                  to={`/appointments/${apt.id}`}
+                  className="block bg-card rounded-xl overflow-hidden shadow-card card-hover"
+                >
+                  <div className="flex">
+                    <div className={`w-1.5 ${colorClasses.bg}`} />
+                    <div className="flex-1 p-4">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h3 className="font-semibold text-foreground">{apt.patientName}</h3>
+                          <p className="text-sm text-primary font-medium">{apt.clinicName}</p>
+                          <p className="text-sm text-muted-foreground mt-1">{apt.procedure}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-foreground">{apt.time}</p>
+                          <p className="text-xs text-muted-foreground">to {apt.endTime}</p>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </Link>
-            );
-          })
-        )}
+                </Link>
+              );
+            })
+          )}
+        </div>
       </div>
 
       {/* Clinic Legend */}
       {clinics.length > 0 && (
-        <div className="px-4 py-3">
+        <div className="px-4 py-4">
           <div className="bg-card rounded-xl p-3 shadow-card">
             <p className="text-xs font-medium text-muted-foreground mb-2">Clinic Colors</p>
             <div className="flex flex-wrap gap-3">
