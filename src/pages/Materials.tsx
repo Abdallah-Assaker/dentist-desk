@@ -10,6 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useClinics } from "@/hooks/useClinics";
 
 interface Material {
   id: string;
@@ -21,11 +22,6 @@ interface Material {
   isGlobal: boolean;
 }
 
-const mockClinics = [
-  { id: "1", name: "Dental Care Clinic" },
-  { id: "2", name: "Elite Dental Center" },
-  { id: "3", name: "Smile Clinic" },
-];
 
 const mockMaterials: Material[] = [
   { id: "1", name: "Composite Resin A2", stock: 3, threshold: 10, avgCost: 450, clinicName: "Dental Care Clinic", isGlobal: false },
