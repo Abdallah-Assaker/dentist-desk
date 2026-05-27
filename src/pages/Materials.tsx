@@ -10,6 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useClinics } from "@/hooks/useClinics";
 
 interface Material {
   id: string;
@@ -21,11 +22,6 @@ interface Material {
   isGlobal: boolean;
 }
 
-const mockClinics = [
-  { id: "1", name: "Dental Care Clinic" },
-  { id: "2", name: "Elite Dental Center" },
-  { id: "3", name: "Smile Clinic" },
-];
 
 const mockMaterials: Material[] = [
   { id: "1", name: "Composite Resin A2", stock: 3, threshold: 10, avgCost: 450, clinicName: "Dental Care Clinic", isGlobal: false },
@@ -40,6 +36,7 @@ export default function Materials() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showLowStockOnly, setShowLowStockOnly] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
+  const { data: clinics = [] } = useClinics();
 
   const filteredMaterials = mockMaterials.filter((material) => {
     const matchesSearch = material.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -120,7 +117,7 @@ export default function Materials() {
             <DropdownMenuItem onClick={() => setSelectedLocation("Global")}>
               Global
             </DropdownMenuItem>
-            {mockClinics.map((clinic) => (
+            {clinics.map((clinic) => (
               <DropdownMenuItem key={clinic.id} onClick={() => setSelectedLocation(clinic.name)}>
                 {clinic.name}
               </DropdownMenuItem>

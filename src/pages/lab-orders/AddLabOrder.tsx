@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
+import { useClinics } from "@/hooks/useClinics";
 
 const mockPatients = [
   { id: "1", name: "Ahmed Hassan" },
@@ -41,11 +42,6 @@ const mockLabServices = [
   { id: "5", name: "Implant Crown", defaultCost: 2000 },
 ];
 
-const mockClinics = [
-  { id: "1", name: "Cairo Dental Center" },
-  { id: "2", name: "Giza Medical Complex" },
-  { id: "3", name: "Alexandria Clinic" },
-];
 
 type CostBearer = "dentist" | "patient" | "clinic" | "dentist_clinic" | "clinic_model";
 
@@ -57,6 +53,8 @@ export default function AddLabOrder() {
   const patientIdFromParams = searchParams.get("patientId");
   const patientNameFromParams = searchParams.get("patientName");
   const clinicNameFromParams = searchParams.get("clinicName");
+  const { data: clinics = [], isLoading: clinicsLoading } = useClinics();
+
 
   // If visitId is provided, the visit is locked (came from Visit Details)
   const isVisitLocked = !!visitIdFromParams;
@@ -214,11 +212,17 @@ export default function AddLabOrder() {
                     <SelectValue placeholder="Select clinic" />
                   </SelectTrigger>
                   <SelectContent>
-                    {mockClinics.map((clinic) => (
+                    {clinicsLoading && (
+                      <SelectItem value="loading" disabled>Loading...</SelectItem>
+                    )}
+                    {clinics.map((clinic) => (
                       <SelectItem key={clinic.id} value={clinic.id}>
                         {clinic.name}
                       </SelectItem>
                     ))}
+                    {!clinicsLoading && clinics.length === 0 && (
+                      <SelectItem value="none" disabled>No clinics found</SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>

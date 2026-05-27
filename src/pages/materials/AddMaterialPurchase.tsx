@@ -6,16 +6,12 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useClinics } from "@/hooks/useClinics";
 
 const suppliers = [
   { id: "1", name: "Dental Supplies Co." },
   { id: "2", name: "MedEquip Egypt" },
   { id: "3", name: "ProDent Materials" },
-];
-
-const clinics = [
-  { id: "1", name: "Dental Care Clinic" },
-  { id: "2", name: "Elite Dental Center" },
 ];
 
 const materials = [
@@ -32,6 +28,7 @@ export default function AddMaterialPurchase() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const isNewMaterial = searchParams.get("new") === "true";
+  const { data: clinics = [], isLoading: clinicsLoading } = useClinics();
 
   // If we have an id from params, use it as the pre-selected material
   const [formData, setFormData] = useState({
@@ -204,11 +201,17 @@ export default function AddMaterialPurchase() {
                   <SelectValue placeholder="Select clinic" />
                 </SelectTrigger>
                 <SelectContent>
+                  {clinicsLoading && (
+                    <SelectItem value="loading" disabled>Loading...</SelectItem>
+                  )}
                   {clinics.map((clinic) => (
                     <SelectItem key={clinic.id} value={clinic.id}>
                       {clinic.name}
                     </SelectItem>
                   ))}
+                  {!clinicsLoading && clinics.length === 0 && (
+                    <SelectItem value="none" disabled>No clinics found</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>

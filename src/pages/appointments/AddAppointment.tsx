@@ -13,11 +13,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useClinics } from "@/hooks/useClinics";
 
-const clinics = [
-  { id: "1", name: "Dental Care Clinic" },
-  { id: "2", name: "Elite Dental Center" },
-];
 
 const mockPatients = [
   { id: "1", name: "Sarah Ahmed", phone: "01012345678" },
@@ -39,6 +36,7 @@ export default function AddAppointment() {
   const navigate = useNavigate();
   const [patientSearch, setPatientSearch] = useState("");
   const [isPatientDialogOpen, setIsPatientDialogOpen] = useState(false);
+  const { data: clinics = [], isLoading: clinicsLoading } = useClinics();
   const [formData, setFormData] = useState({
     patientId: "",
     patientName: "",
@@ -161,11 +159,17 @@ export default function AddAppointment() {
               <SelectValue placeholder="Select clinic" />
             </SelectTrigger>
             <SelectContent>
+              {clinicsLoading && (
+                <SelectItem value="loading" disabled>Loading...</SelectItem>
+              )}
               {clinics.map((clinic) => (
                 <SelectItem key={clinic.id} value={clinic.id}>
                   {clinic.name}
                 </SelectItem>
               ))}
+              {!clinicsLoading && clinics.length === 0 && (
+                <SelectItem value="none" disabled>No clinics found</SelectItem>
+              )}
             </SelectContent>
           </Select>
         </section>
