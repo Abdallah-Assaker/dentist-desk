@@ -28,6 +28,7 @@ export default function AddMaterialPurchase() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const isNewMaterial = searchParams.get("new") === "true";
+  const { data: clinics = [], isLoading: clinicsLoading } = useClinics();
 
   // If we have an id from params, use it as the pre-selected material
   const [formData, setFormData] = useState({
