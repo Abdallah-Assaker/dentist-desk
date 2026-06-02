@@ -14,53 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      appointments: {
-        Row: {
-          appointment_date: string
-          appointment_time: string
-          clinic_id: string
-          created_at: string
-          duration_minutes: number
-          id: string
-          notes: string | null
-          patient_id: string
-          patient_name: string
-          updated_at: string
-        }
-        Insert: {
-          appointment_date: string
-          appointment_time: string
-          clinic_id: string
-          created_at?: string
-          duration_minutes?: number
-          id?: string
-          notes?: string | null
-          patient_id: string
-          patient_name: string
-          updated_at?: string
-        }
-        Update: {
-          appointment_date?: string
-          appointment_time?: string
-          clinic_id?: string
-          created_at?: string
-          duration_minutes?: number
-          id?: string
-          notes?: string | null
-          patient_id?: string
-          patient_name?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "appointments_clinic_id_fkey"
-            columns: ["clinic_id"]
-            isOneToOne: false
-            referencedRelation: "clinics"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       clinics: {
         Row: {
           color: string
